@@ -1,0 +1,61 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atecc608a",
+            "name": "atecc608a launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atecc608a",
+            "name": "atecc608a attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/blinky",
+            "name": "blinky launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+            // "runToMain": true,
+            // "swoConfig": {
+            //     "enabled": true,
+            //     "cpuFrequency": 64000000,
+            //     "swoFrequency": 1000000,
+            //     "source": "probe",
+            //     "decoders": [
+            //         { "type": "console", "label": "Name", "port": 0 }
+            //     ]
+            // }
+
+        }
+    ]
+}
