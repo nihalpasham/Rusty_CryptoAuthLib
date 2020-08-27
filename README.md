@@ -1,4 +1,6 @@
-A platform agnostic I2C driver for Microchip's crypto-authentication device i.e. ATECC608a, written entirely in Rust.
+A platform agnostic I2C driver for Microchip's crypto-authentication device i.e. ATECC608a, written entirely in Rust. This library implements APIs required to communicate with Microchip Security device - ATECC608a.
+
+![NRF52840 communicating with a ATECC608a](https://github.com/nihalpasham/Rusty_CryptoAuthLib/i2c_logic_captures/atecc608a_w_nrf52840.jpg "Maker Diary's NRF52840-mdk communicating with a ATECC608a")
 
 The ATECC608A device is a member of the Microchip CryptoAuthentication™ family of crypto engine
 authentication devices with highly secure hardware-based key storage.
