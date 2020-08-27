@@ -97,8 +97,8 @@ where
         //     self.i2c.write(self.dev_addr, &packet[..packet.len()]);
         // } else
         let slice_1 = &packet[..6];
-        // Variable length data in postcard (such as slices)
-        // are prefixed by their length. Length is a VARINT
+        // For Variable length data 'postcard' (such as slices)
+        // prefixes the data by their length. Length is a VARINT. So, we will need to remove the length byte.
         let slice_2 = &packet[(constants::ATCA_CMD_SIZE_MIN) as usize..];
 
         let mut pkt = [0; constants::ATCA_CMD_SIZE_MAX as usize];

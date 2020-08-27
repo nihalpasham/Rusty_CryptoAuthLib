@@ -1,6 +1,6 @@
 A platform agnostic I2C driver for Microchip's crypto-authentication device i.e. ATECC608a, written entirely in Rust. This library implements APIs required to communicate with Microchip Security device - ATECC608a.
 
-![NRF52840 communicating with a ATECC608a](https://github.com/nihalpasham/Rusty_CryptoAuthLib/i2c_logic_captures/atecc608a_w_nrf52840.jpg "Maker Diary's NRF52840-mdk communicating with a ATECC608a")
+![NRF52840 communicating with a ATECC608a](https://github.com/nihalpasham/Rusty_CryptoAuthLib/blob/master/i2c_logic_captures/atecc608a_w_nrf52840.jpg "Maker Diary's NRF52840-mdk communicating with a ATECC608a")
 
 The ATECC608A device is a member of the Microchip CryptoAuthentication™ family of crypto engine
 authentication devices with highly secure hardware-based key storage.
@@ -49,9 +49,9 @@ hardware SHA accelerator (CheckMac, DeriveKey, GenDig, HMAC, MAC, SHA, and Nonce
 making it easier for to call from an existing C code-base.
 
 ## Notes:
-1. This driver is a product of my interest in 'learning the language'. So, its not perfect (or production quality) and there may be better ways to do things. All feedback, comments, suggestions are welcome. 
+1. This driver is a product of my interest in 'learning the language'. So, its not perfect (or production quality) and there may be better ways to do things. Feedback, comments, suggestions are welcome. 
 2. Uses 'Postcard' to serizalize or de-serialize a Rust struct to 'heapless Vec' (i.e. stack-based vec for no_std environments)
-2. This code has only been tested on an nrf board using 'nrf-hal-comman'. In theory, it should work with any HAL that implements 'embedded-hal' traits.
+2. This code has been tested on an nrf board using 'nrf-hal-common'. In theory, it should work with any HAL that implements 'embedded-hal' traits.
 3. During development, I discovered a bug in the i2c/TWIM implementation for nrf52840 (in nrf52840_hal). 
 4. A PR was raised and the fix was merged-in but just make sure you pull in the fix or edit cargo.toml accordingly to get this driver to work. https://github.com/nrf-rs/nrf-hal/pull/166
 5. References used to build the rusty version of this driver. 
