@@ -30,12 +30,9 @@ Interface at speeds of up to 1 Mb/s(see Section I2C Interface). The interface is
 standard Serial EEPROM I2C interface specifications.
 
 The ATECC608A is a command-based device which receives commands from the system, executes
-those commands, and then returns a result or error code. Within this document, the following
-nomenclature is used to describe the various commands:
+those commands, and then returns a result or error code.
 * **Security Commands:**
-Described in Section Security Commands. This group of commands generally access the EEPROM
-space and/or perform cryptographic computation. These commands are indicated with a special
-font in this document (e.g. GenDig) and are available from all interfaces.
+This group of commands generally access the EEPROM space and/or perform cryptographic computation. 
 * **Cryptographic Commands:**
 This subset of the security commands includes all the ECC commands which access the hardware
 ECC accelerator (GenKey, Sign, ECDH, and Verify) and the SHA commands which access the
