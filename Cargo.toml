@@ -1,6 +1,6 @@
 [package]
 name = "Rusty_CryptoAuthLib"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Nihal Pasham <nihal.pasham@gmail.com>"]
 repository = "https://github.com/nihalpasham/Rusty_CryptoAuthLib.git"
 license = "MIT OR Apache-2.0"

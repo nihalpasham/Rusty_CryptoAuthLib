@@ -1,6 +1,6 @@
 A platform agnostic I2C driver for Microchip's crypto-authentication device i.e. ATECC608a, written entirely in Rust. This library implements APIs required to communicate with Microchip Security device - ATECC608a.
 
-![NRF52840 communicating with a ATECC608a](https://github.com/nihalpasham/Rusty_CryptoAuthLib/blob/master/i2c_logic_captures/atecc608a_w_nrf52840.jpg "Maker Diary's NRF52840-mdk communicating with a ATECC608a")
+![NRF52840 communicating with a ATECC608a](https://user-images.githubusercontent.com/20253082/91416112-8ee97d00-e86c-11ea-884a-c2b24addd983.jpg "Maker Diary's NRF52840-mdk communicating with a ATECC608a")
 
 The ATECC608A device is a member of the Microchip CryptoAuthentication™ family of crypto engine
 authentication devices with highly secure hardware-based key storage.
@@ -59,6 +59,7 @@ making it easier for to call from an existing C code-base.
 ## Usage: 
 
 ```Rust
+
 #![no_main]
 #![no_std]
 // #![allow(warnings)]
@@ -74,7 +75,7 @@ use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
 use Rusty_CryptoAuthLib::ATECC608A;
 
-/// Test Enum
+// Test Enum
 #[derive(Copy, Clone, Debug)]
 pub enum TestEnum {
     ShaTestData1,
@@ -112,12 +113,17 @@ fn main() -> ! {
     let timer = Timer::new(p.TIMER1);
     let mut atecc608a = ATECC608A::new(i2c, delay, timer).unwrap();
 
-    // INFO COMMAND EXAMPLE
+    #[doc = "##########################################"]
+    #[doc = "#          INFO COMMAND EXAMPLE          #"]
+    #[doc = "##########################################"]
     let _info = match atecc608a.atcab_info() {
         Ok(v) => v,
         Err(e) => panic!("ERROR: {:?}", e),
     };
-    // SHA COMMAND EXAMPLE
+    
+    #[doc = "##########################################"]
+    #[doc = "#          SHA COMMAND EXAMPLE           #"]
+    #[doc = "##########################################"]
     let selection = TestEnum::ShaTestData1; // or TestEnum::ShaTestData2
     let sha = match atecc608a.atcab_sha(selection.get_value()) {
         Ok(v) => v,
@@ -142,7 +148,9 @@ fn main() -> ! {
         ),
     }
 
-    //READ COMMAND EXAMPLE
+    #[doc = "##########################################"]
+    #[doc = "#          READ COMMAND EXAMPLE          #"]
+    #[doc = "##########################################"]
     let _dump_config_zone = atecc608a.atcab_read_config_zone();
 
     loop {}
@@ -158,9 +166,8 @@ fn DefaultHandler(irqn: i16) {
     panic!("Unhandled exception (IRQn = {})", irqn);
 }
 
-.......
-....... ///edited for brevity's sake. See atecc608a.rs examples for complete code. 
-
+//
+// edited for brevity's sake. See atecc608a.rs examples for complete code. 
 ```
 
 ## Currently supported commands are:
