@@ -17,14 +17,14 @@ pub struct ATCAPacket<'a> {
 impl<'a> ATCAPacket<'_> {
     /// This methods constructs an input command packet. An input security command is sent
     /// after transmitting the 'i2c device address' and is broken down as follows
-    ///     pktID: 1 byte value of 0x03 for normal operation
-    ///     txsize: 1 byte value that represents the number of bytes to be transferred to the device, 
-    ///             including count byte,
-    ///             packet bytes, and checksum bytes. 
-    ///             The count byte should therefore always have a value of
-    ///             (N+1), where N is equal to the number of bytes in the packet plus the two checksum bytes.
-    ///     Param1: An additional 1 byte command parameter that must always be present. Value depends on the command being sent
-    ///     Param2: An additional 2 byte Command parameter that must always be present. Vlaue depends on the command being sent
+    /// - pktID: 1 byte value of 0x03 for normal operation
+    /// - txsize: 1 byte value that represents the number of bytes to be transferred to the device, 
+    ///           including count byte,
+    ///           packet bytes, and checksum bytes. 
+    ///           The count byte should therefore always have a value of
+    ///           (N+1), where N is equal to the number of bytes in the packet plus the two checksum bytes.
+    /// - Param1: An additional 1 byte command parameter that must always be present. Value depends on the command being sent
+    /// - Param2: An additional 2 byte Command parameter that must always be present. Vlaue depends on the command being sent
     pub fn make_packet(
         &mut self,
         txsize: Option<u8>,
@@ -107,15 +107,15 @@ pub struct ATCAPacket_w_data<'a> {
 impl<'a> ATCAPacket_w_data<'_> {
     /// This methods constructs an input command packet. An input security command is sent
     /// after transmitting the 'i2c device address' and is broken down as follows
-    ///     pktID: 1 byte value of 0x03 for normal operation
-    ///     txsize: 1 byte value that represents the number of bytes to be transferred to the device, 
-    ///             including count byte,
-    ///             packet bytes, and checksum bytes. 
-    ///             The count byte should therefore always have a value of
-    ///             (N+1), where N is equal to the number of bytes in the packet plus the two checksum bytes.
-    ///     Param1: An additional 1 byte command parameter that must always be present. Value depends on the command being sent
-    ///     Param2: An additional 2 byte Command parameter that must always be present. Vlaue depends on the command being sent
-    ///     Data: A data payload section.Value depends on the command being sent.
+    /// - pktID: 1 byte value of 0x03 for normal operation
+    /// - txsize: 1 byte value that represents the number of bytes to be transferred to the device, 
+    ///           including count byte,
+    ///           packet bytes, and checksum bytes. 
+    ///           The count byte should therefore always have a value of
+    ///           (N+1), where N is equal to the number of bytes in the packet plus the two checksum bytes.
+    /// - Param1: An additional 1 byte command parameter that must always be present. Value depends on the command being sent
+    /// - Param2: An additional 2 byte Command parameter that must always be present. Vlaue depends on the command being sent
+    /// - Data: A data payload section.Value depends on the command being sent.
     pub fn make_packet(
         &mut self,
         txsize: Option<u8>,

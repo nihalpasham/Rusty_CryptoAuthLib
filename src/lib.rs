@@ -150,7 +150,7 @@ where
         }
     }
     
-    /* INFO COMMANDS */
+    // INFO COMMANDS 
     /// This method crafts a 'INFO command' packet.
     pub fn atcab_info_base(&mut self, param1: u8) -> Vec<u8, U10> {
         let mut q = packet::ATCAPacket {
@@ -178,6 +178,7 @@ where
     ///
     /// Returns a single 4-byte word representing the revision number of the device. Software
     /// should not depend on this value as it may change from time to time.
+    /// 
     /// At the time of writing this, the Info command will return 0x00 0x00 0x60 0x02. For
     /// all versions of the ECC608A the 3rd byte will always be 0x60. The fourth byte will indicate the
     /// silicon revision.
@@ -195,10 +196,7 @@ where
         Ok(response)
     }
 
-    
-    #[doc = "#           Rusty CryptoAuthLib API/method for SHA command                #"]
-    
-
+    // SHA COMMANDS
     /// This method crafts a 'SHA command' packet.
     pub fn atcab_sha_base(&mut self, mode: u8, data: &[u8]) -> Vec<u8, U74> {
         let cmd_mode = mode & constants::SHA_MODE_MASK;
@@ -255,6 +253,9 @@ where
             return output;
         }
     }
+
+    #[doc = "Rusty CryptoAuthLib API/method for SHA command"]
+    ///
     /// Computes a SHA-256 digest for general purpose use by the system.
     /// Calculation of a SHA-256 digest occurs in the following three steps:
     /// 1. Start: Initialization of the SHA-256 calculation engine and initialization of the SHA context in
@@ -314,20 +315,18 @@ where
         };
         Ok(sha_final_resp)
     }
-
     
-    #[doc = "#           Rusty CryptoAuthLib API/method for Sign command               #"]
-    
-
+    // SIGN COMMANDS
+    /// 
     pub fn atcab_sign_base() {}
 
+    #[doc = "Rusty CryptoAuthLib API/method for Sign command"]
+    ///
     pub fn atcab_sign() {}
 
     
-    #[doc = "#             Rusty CryptoAuthLib API/method for Lock command             #"]
-    
-
-    // This method crafts a 'LOCK command' packet.
+    // LOCK COMMANDS
+    /// This method crafts a 'LOCK command' packet.
     pub fn atcab_lock(&mut self, mode: u8, crc: [u8; 2]) -> Vec<u8, U10> {
         let mut q = packet::ATCAPacket {
             pktID: 0x03,
@@ -356,8 +355,12 @@ where
         return output;
     }
 
+    #[doc = "Rusty CryptoAuthLib API/method for Lock command"]
+    ///
     /// This method uses the Lock command to prevent future modification of the Configuration zone.
-    /// CRC argument is [00, 00]
+    /// 
+    /// - CRC argument is [00, 00]
+    /// 
     /// The Lock command fails if the designated area is already locked.
     /// Upon successful execution, the device returns a value of zero.
     pub fn atcab_lock_config_zone(
@@ -378,11 +381,13 @@ where
     }
 
     /// Prior to locking the configuration zone, the device can optionally use the
-    /// CRC-16 algorithm to verify the contents of the designated zone(s). The calculation uses the same
-    /// algorithm as the CRC computed over the input and output groups.
+    /// CRC-16 algorithm to verify the contents of the designated zone(s). 
+    /// 
+    /// The calculation uses the same algorithm as the CRC computed over the input and output groups.
     /// The value of the 7th bit of the 'mode parameter' (called summary check bit) is important.
-    /// =>    0 = The summary value is verified before the zone is locked.
-    /// =>    1 = Check of the zone summary is ignored and the zone is locked regardless of the contents of the zone.
+    /// 
+    /// - 0 = The summary value is verified before the zone is locked.
+    /// - 1 = Check of the zone summary is ignored and the zone is locked regardless of the contents of the zone.
     pub fn atcab_lock_config_zone_crc(
         &mut self,
         crc: [u8; 2],
@@ -397,11 +402,8 @@ where
         };
         Ok(lock_resp)
     }
-
     
-    #[doc = "#             Rusty CryptoAuthLib API/method for Read command             #"]
-    
-
+    // READ COMMANDS
     /// This method crafts a 'READ command' packet.
     /// Returns command packet as a heapless Vec.
     pub fn atcab_read_zone(
@@ -446,6 +448,7 @@ where
         let output: Vec<u8, U10> = to_vec(packet).unwrap();
         return output;
     }
+
     ///This method reads words (one four byte word or an 8-word block of 32 bytes) from one of the memory zones of the device.
     /// Returns an array of 4 byte arrays.
     pub fn atcab_read_bytes_zone(
@@ -518,10 +521,14 @@ where
         return Ok(config_zone);
     }
 
+    #[doc = "Rusty CryptoAuthLib API/method for Read command"]
+    ///
     /// Dumps the contents of Config zone. Zone of 128 bytes (1,024-bit) EEPROM that contains the serial
     /// number and other ID information, as well as, access policy information for each slot of the data memory.
+    /// 
     /// The values programmed into the configuration zone will determine the access policy of how each data slot will respond.
     /// The configuration zone can be modified until it has been locked (LockConfig set to !=0x55).
+    /// 
     /// In order to enable the access policies, the LockValue byte must be set.
     pub fn atcab_read_config_zone(&mut self) -> Result<[u8; 128], &'static str> {
         let packet = match self.atcab_read_bytes_zone(
@@ -555,13 +562,18 @@ where
     }
 
     /// Address of first word to be read within the zone.
-    /// The Read and Write commands include a single 16 bit address in Param2, which indicates the memory location to be accessed.
+    /// The Read and Write commands include a single 16 bit address in Param2, 
+    /// which indicates the memory location to be accessed.
     /// In all cases, data is accessed on 4 byte word boundaries.
-    /// Address Encoding for Config and OTP Zones (Param2). Byte 1 is unused and Byte 0 is used as follows
-    /// ******************Byte 0 info ******************
-    /// Unused - Bits 7-5 (drop the 3 most significant bits by left shifting)
-    /// Block  - Bits 4-3 (the config zone has 4 blocks in total 0-3 and is 128 bytes in length)
-    /// Offset - Bits 2-0 (offset into the block)
+    /// Address Encoding for Config and OTP Zones (Param2). 
+    /// 
+    /// Byte 1 is unused and Byte 0 is used as follows
+    /// 
+    /// ===========Byte 0 info ===========
+    /// 
+    /// - Unused - Bits 7-5 (drop the 3 most significant bits by left shifting)
+    /// - Block  - Bits 4-3 (the config zone has 4 blocks in total 0-3 and is 128 bytes in length)
+    /// - Offset - Bits 2-0 (offset into the block)
     pub fn atcab_get_addr(&mut self, zone: u16, slot: u16, block: u16, offset: u16) -> u16 {
         let mem_zone = zone & constants::ATCA_ZONE_MASK as u16;
         if mem_zone == constants::ATCA_ZONE_CONFIG as u16
