@@ -149,11 +149,8 @@ where
             Err(StatusError)
         }
     }
-
-    #[doc = "###########################################################################"]
-    #[doc = "#          Rusty CryptoAuthLib API/method for Info command                #"]
-    #[doc = "###########################################################################"]
-
+    
+    /* INFO COMMANDS */
     /// This method crafts a 'INFO command' packet.
     pub fn atcab_info_base(&mut self, param1: u8) -> Vec<u8, U10> {
         let mut q = packet::ATCAPacket {
@@ -176,6 +173,9 @@ where
         );
         return output;
     }
+
+    #[doc = "Rusty CryptoAuthLib API/method for Info command"]
+    ///
     /// Returns a single 4-byte word representing the revision number of the device. Software
     /// should not depend on this value as it may change from time to time.
     /// At the time of writing this, the Info command will return 0x00 0x00 0x60 0x02. For
@@ -195,9 +195,9 @@ where
         Ok(response)
     }
 
-    #[doc = "###########################################################################"]
+    
     #[doc = "#           Rusty CryptoAuthLib API/method for SHA command                #"]
-    #[doc = "###########################################################################"]
+    
 
     /// This method crafts a 'SHA command' packet.
     pub fn atcab_sha_base(&mut self, mode: u8, data: &[u8]) -> Vec<u8, U74> {
@@ -315,17 +315,17 @@ where
         Ok(sha_final_resp)
     }
 
-    #[doc = "###########################################################################"]
+    
     #[doc = "#           Rusty CryptoAuthLib API/method for Sign command               #"]
-    #[doc = "###########################################################################"]
+    
 
     pub fn atcab_sign_base() {}
 
     pub fn atcab_sign() {}
 
-    #[doc = "###########################################################################"]
+    
     #[doc = "#             Rusty CryptoAuthLib API/method for Lock command             #"]
-    #[doc = "###########################################################################"]
+    
 
     // This method crafts a 'LOCK command' packet.
     pub fn atcab_lock(&mut self, mode: u8, crc: [u8; 2]) -> Vec<u8, U10> {
@@ -398,9 +398,9 @@ where
         Ok(lock_resp)
     }
 
-    #[doc = "###########################################################################"]
+    
     #[doc = "#             Rusty CryptoAuthLib API/method for Read command             #"]
-    #[doc = "###########################################################################"]
+    
 
     /// This method crafts a 'READ command' packet.
     /// Returns command packet as a heapless Vec.
