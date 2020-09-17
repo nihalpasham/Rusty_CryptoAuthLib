@@ -37,6 +37,146 @@
             "request": "launch",
             "servertype": "openocd",
             "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_read_config_zone",
+            "name": "atcab_read_config launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_read_config_zone",
+            "name": "atcab_read_config attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_write_config_zone",
+            "name": "atcab_write_config launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_write_config_zone",
+            "name": "atcab_write_config attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_lock_config_zone_crc",
+            "name": "atcab_lock_config_crc launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_genkey",
+            "name": "atcab_genkey attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_genkey",
+            "name": "atcab_genkey launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_lock_config_zone_crc",
+            "name": "atcab_lock_config_crc attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_sign_and_verify",
+            "name": "atcab_sign_and_verify launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_sign_and_verify",
+            "name": "atcab_sign_and_verify attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg", 
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
             "executable": "./target/thumbv7em-none-eabihf/release/examples/blinky",
             "name": "blinky launch (OpenOCD)",
             "device": "nRF52840",

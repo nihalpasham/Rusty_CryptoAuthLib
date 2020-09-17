@@ -389,7 +389,7 @@ pub(crate) const SIGN_MODE_EXTERNAL: u8 = 0x80;
 pub(crate) const SIGN_MODE_SOURCE_MASK: u8 = 0x20;
 pub(crate) const SIGN_MODE_SOURCE_TEMPKEY: u8 = 0x00;
 pub(crate) const SIGN_MODE_SOURCE_MSGDIGBUF: u8 = 0x20;
-pub(crate) const SIGN_RSP_SIZE: u8 = 75;
+pub(crate) const SIGN_RSP_SIZE: u8 = 64;
 pub(crate) const UPDATE_MODE_IDX: u8 = 2;
 pub(crate) const UPDATE_VALUE_IDX: u8 = 3;
 pub(crate) const UPDATE_COUNT: u8 = 7;
@@ -566,7 +566,7 @@ impl DECODE_ERROR {
             0x11 => StatusError (ATCA_WAKE_SUCCESS, ATCA_ERRORS::NoError("WakeSuccess")),
             0xEE => StatusError (ATCA_WATCHDOG_ABOUT_TO_EXPIRE, ATCA_ERRORS::WatchDogAboutToExpireError("response status indicates insufficient time to execute the given commmand before watchdog timer expires (status byte = 0xEE)")),
             0xFF => StatusError (ATCA_STATUS_CRC, ATCA_ERRORS::CrcError("incorrect CRC received")),
-            _    => StatusError (0xFF, ATCA_ERRORS::UnimplementedError),
+            _    => StatusError (ATCA_UNIMPLEMENTED, ATCA_ERRORS::UnimplementedError),
         }
     }
 }
