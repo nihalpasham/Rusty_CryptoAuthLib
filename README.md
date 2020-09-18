@@ -41,9 +41,9 @@ hardware SHA accelerator (CheckMac, DeriveKey, GenDig, HMAC, MAC, SHA, and Nonce
 ## Features:
 1. 100% safe Rust code i.e. no memory-safety bugs in the driver (unless my logic is wrong).
 2. Platform agnostic i.e. uses 'embedded-hal' for all HW dependencies.
-3. No (heap) dynamic memory allocation required at all.
-3. API compatibility with that of Microchip's CrypoAuthlib 'C library' i.e. uses the same names & arguments 
-making it easier for to call from an existing C code-base.
+3. No (heap) dynamic memory allocation required at all. Uses `heapless` and `Postcard` for command packet construction.
+3. API compatibility with that of Microchip's CrypoAuthlib 'C library' i.e. uses the same names & arguments,
+making it easier to bind to an existing C code-base.
 
 ## Notes:
 1. This driver is a product of my interest in 'learning the language'. So, its not perfect (or production quality) and there may be better ways to do things. Feedback, comments, suggestions are welcome. 
@@ -66,38 +66,17 @@ making it easier for to call from an existing C code-base.
 
 extern crate nrf52840_hal as hal;
 extern crate panic_halt;
+extern crate nrf52840_mdk;
 use cortex_m_rt::{entry, exception};
 
-use hal::gpio::{p0, p1, Floating, Input};
+use hal::gpio::{p0, p1};
 use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
 use Rusty_CryptoAuthLib::ATECC608A;
+use nrf52840_mdk::Pins;
 
-// Test Enum
-#[derive(Copy, Clone, Debug)]
-pub enum TestEnum {
-    ShaTestData1,
-    ShaTestData2,
-}
-
-impl<'a> TestEnum {
-    pub fn get_value(self) -> &'a [u8] {
-        match self {
-            TestEnum::ShaTestData1 => &[0x01, 0x02, 0x03, 0x04, 0x05],
-            TestEnum::ShaTestData2 => &[
-                0x1f, 0xe6, 0x54, 0xc1, 0x80, 0x88, 0xe7, 0xfe, 0xf0, 0x84, 0xf9, 0x8a, 0x1a, 0x12,
-                0xdb, 0x84, 0x69, 0x54, 0x34, 0x25, 0x06, 0xf5, 0x17, 0x69, 0x18, 0x9e, 0x3a, 0x90,
-                0x79, 0x2f, 0xd3, 0x28, 0xcf, 0x51, 0x5d, 0x1e, 0x44, 0xbb, 0xa4, 0x9d, 0x34, 0xde,
-                0x3b, 0x99, 0xca, 0x4c, 0x5e, 0x7e, 0xf4, 0x3a, 0xf6, 0xda, 0x41, 0x3c, 0x91, 0xc7,
-                0x98, 0x70, 0xd4, 0x87, 0x68, 0xac, 0x74, 0x5b, 0x1f, 0xe6, 0x54, 0xc1, 0x80, 0x88,
-                0xe7, 0xfe, 0xf0, 0x84, 0xf9, 0x8a, 0x1a, 0x12, 0xdb, 0x84, 0x69, 0x54, 0x34, 0x25,
-                0x06, 0xf5, 0x17, 0x69, 0x18, 0x9e, 0x3a, 0x90, 0x79, 0x2f, 0xd3, 0x28,
-            ],
-        }
-    }
-}
 
 #[entry]
 fn main() -> ! {
@@ -113,45 +92,22 @@ fn main() -> ! {
     let timer = Timer::new(p.TIMER1);
     let mut atecc608a = ATECC608A::new(i2c, delay, timer).unwrap();
 
-    #[doc = "##########################################"]
-    #[doc = "#          INFO COMMAND EXAMPLE          #"]
-    #[doc = "##########################################"]
-    let _info = match atecc608a.atcab_info() {
-        Ok(v) => v,
-        Err(e) => panic!("ERROR: {:?}", e),
+    // GENKEY COMMAND EXAMPLE
+    // Note: TFLXTLSConfig has slot 2 configured to hold an ECC private key. 
+    // So, only GENKEY AND PRIVWRITE commands can be used to write (i.e. store or generate private keys) to this slot. 
+    // Check `Slot access policies` section in my GitHub readme for more info.
+    let slot = 0x02;
+    let gen_public_key = match atecc608a.atcab_genkey(slot) { // public key retreived upon 
+        Ok(v) => v,                                           // generating and storing a new (random) ECC private key
+        Err(e) => panic!("Error generating ECC private key: {:?}", e), // in slot 2.
     };
-    
-    #[doc = "##########################################"]
-    #[doc = "#          SHA COMMAND EXAMPLE           #"]
-    #[doc = "##########################################"]
-    let selection = TestEnum::ShaTestData1; // or TestEnum::ShaTestData2
-    let sha = match atecc608a.atcab_sha(selection.get_value()) {
-        Ok(v) => v,
-        Err(e) => panic!("ERROR: {:?}", e),
-    };
-    match selection {
-        TestEnum::ShaTestData1 => assert_eq!(
-            [
-                0x74, 0xf8, 0x1f, 0xe1, 0x67, 0xd9, 0x9b, 0x4c, 0xb4, 0x1d, 0x6d, 0x0c, 0xcd, 0xa8,
-                0x22, 0x78, 0xca, 0xee, 0x9f, 0x3e, 0x2f, 0x25, 0xd5, 0xe5, 0xa3, 0x93, 0x6f, 0xf3,
-                0xdc, 0xec, 0x60, 0xd0
-            ],
-            &sha[..32]
-        ),
-        TestEnum::ShaTestData2 => assert_eq!(
-            [
-                0x6e, 0x68, 0x88, 0x97, 0xd4, 0x70, 0xe7, 0x74, 0x27, 0x44, 0xcf, 0x2b, 0xcd, 0xe9,
-                0x3c, 0x9b, 0xe6, 0x94, 0xf3, 0x36, 0x34, 0x54, 0x46, 0x48, 0x27, 0x04, 0x19, 0xe7,
-                0xce, 0xe3, 0x40, 0xdd
-            ],
-            &sha[..32]
-        ),
-    }
 
-    #[doc = "##########################################"]
-    #[doc = "#          READ COMMAND EXAMPLE          #"]
-    #[doc = "##########################################"]
-    let _dump_config_zone = atecc608a.atcab_read_config_zone();
+    let comp_public_key = match atecc608a.atcab_get_pubkey(slot) { // public key computed from
+        Ok(v) => v,                                                // the previously generated and stored
+        Err(e) => panic!("Error retrieving ECC public key: {:?}", e), // private key in slot 2.
+    };
+
+    assert_eq!(&gen_public_key[..], &comp_public_key[..]);
 
     loop {}
 }
@@ -166,24 +122,66 @@ fn DefaultHandler(irqn: i16) {
     panic!("Unhandled exception (IRQn = {})", irqn);
 }
 
-//
-// edited for brevity's sake. See atecc608a.rs examples for complete code. 
 ```
+Please see the examples folder for more.
+
+## Device personalisation (i.e. configuration) steps:
+
+The ATECC608A is a command-based device which receives commands from the system, executes those commands, and then returns a result or error code. It contains an integrated EEPROM storage memory and SRAM buffer. The EEPROM memory contains a total of 1400 bytes and is divided into the following zones:
+
+1. Configuration zone: 128 bytes contains device configuration info such as access policies for each slot, serial number, lock information etc.
+2. Data zone: 1208 bytes (split into 16 general purpose read-only or read/write memory slots.)
+3. OTP zone: 64 bytes
+
+Before we begin, we'll need to program the Config zone with values that will determine the access policy for how each data slot will respond. The configuration zone can
+be modified until it has been locked (LockConfig set to !=0x55). In order to enable the access policies, the LockValue byte must be set. Here's a comparison between an out-of-the-box config Vs sample (ATECC-TFLXTLS) config. (Sample config taken from Microchip. It's used in some of its pre-provisioned variants.) 
+
+![atecc608a_configs_graphical_view](https://user-images.githubusercontent.com/20253082/93613422-78a78a80-f9ee-11ea-8e32-2d7a15770091.png "Out of the box Config Vs ATECC-TFLXTLS Config")
+
+Writing the ATECC-TFLXTLS configuration to the device will yield a personalised device i.e. you can now generate/store keys, certificates and other content in the device's EEPROM slots as shown in the table below. For a more detailed view of slot access policies and commands that can be used on each slot - [Detailed slot access policies](https://user-images.githubusercontent.com/20253082/93618137-83651e00-f9f4-11ea-8ee4-8b98373ac0be.png)
+
+| Slot  | Use-case                          |
+|-------|-----------------------------------|
+| 0     | Primary private key               |
+| 1     | Internal sign private key         |
+| 2     | Secondary private key 1           |
+| 3     | Secondary private key 2           |
+| 4     | Secondary private key 3           |
+| 5     | Secret key                        |
+| 6     | IO protection key                 |
+| 7     | Secure boot digest                |
+| 8     | General data                      |
+| 9     | AES key                           |
+| 10    | Device compressed certificate     |
+| 11    | Signer public key                 |
+| 12    | Signer compressed certificate     |
+| 13    | Parent public key or general data |
+| 14    | Validated public key              |
+| 15    | Secure boot public key            |
+
+**Important Notes**
+1. After writing the config-zone bytes to the configuration zone, we have to lock the config zone before we can read/write to the data zone. 
+2. Locking the Config zone is an **irreversible operation**. So, please make sure you got everything right.
+3. Once that's done, you can start populating the device with private ECC keys in slots 0-4 or public keys of your choice in slot 13-15 etc. 
+    -   Note: After locking the config zone, data and OTP zone are writable, depending on the configuration of slot access policies. However, policies are not strictly enforced while in this state i.e. some commands like 'write or genkey' will still work even though a slot is configured to be (permanently) not writable.  
+4. Only after locking the data zone (byte [86] in the config zone) are access policies for slots strictly enforced.
+
 
 ## Currently supported commands are:
 - INFO
 - LOCK
 - READ (1)
 - SHA (1)
-    
-## Support to be added for:
 - WRITE (1) -
 - VERIFY (1)
 - GENKEY
 - SIGN
+- NONCE
+    
+## Support to be added for:
 - SELFTEST
 - RANDOM
-- NONCE
+
 
 (1) Not all features are implemented, see follow list for details
 
@@ -204,9 +202,9 @@ fn DefaultHandler(irqn: i16) {
 - [ ] atcab_ecdh_tempkey(public_key)
 - [ ] atcab_ecdh_tempkey_ioenc(public_key, io_key)
 - [ ] atcab_gendig(zone, key_id, other_data)
-- [ ] atcab_genkey_base(mode, key_id, other_data=None)
-- [ ] atcab_genkey(key_id)
-- [ ] atcab_get_pubkey(key_id)
+- [x] atcab_genkey_base(mode, key_id, other_data=None)
+- [x] atcab_genkey(key_id)
+- [x] atcab_get_pubkey(key_id)
 - [ ] atcab_hmac(mode, key_id)
 - [x] atcab_info_base(mode=0)
 - [x] atcab_info()
@@ -218,19 +216,19 @@ fn DefaultHandler(irqn: i16) {
 - [ ] atcab_lock_data_zone_crc(crc)
 - [ ] atcab_lock_data_slot(slot)
 - [ ] atcab_mac(mode, key_id, challenge)
-- [ ] atcab_nonce_base(mode, zero=0, numbers=None)
-- [ ] atcab_nonce(numbers=None)
-- [ ] atcab_nonce_load(target, numbers=None)
-- [ ] atcab_nonce_rand(numbers=None)
-- [ ] atcab_challenge(numbers=None)
-- [ ] atcab_challenge_seed_update(numbers=None)
+- [x] atcab_nonce_base(mode, zero=0, numbers=None)
+- [x] atcab_nonce(numbers=None)
+- [x] atcab_nonce_load(target, numbers=None)
+- [x] atcab_nonce_rand(numbers=None)
+- [x] atcab_challenge(numbers=None)
+- [x] atcab_challenge_seed_update(numbers=None)
 - [ ] atcab_priv_write(key_id, priv_key, write_key_id, write_key)
 - [ ] atcab_random()
 - [x] atcab_read_zone(zone, slot=0, block=0, offset=0, length=0)
 - [ ] atcab_read_serial_number()
 - [x] atcab_read_bytes_zone(zone, slot=0, block=0, offset=0, length=0)
 - [ ] atcab_is_slot_locked(slot)
-- [ ] atcab_is_locked(zone)
+- [x] atcab_is_locked(zone)
 - [x] atcab_read_config_zone()
 - [ ] atcab_read_enc(key_id, block, data, enc_key, enc_key_id)
 - [ ] atcab_cmp_config_zone(config_data)
@@ -242,22 +240,22 @@ fn DefaultHandler(irqn: i16) {
 - [x] atcab_sha_base(mode=0, data=b'', key_slot=None)
 - [x] atcab_sha(data)
 - [ ] atcab_sha_hmac(data, key_slot, target)
-- [ ] atcab_sign_base(mode, key_id)
-- [ ] atcab_sign(key_id, message)
-- [ ] atcab_sign_internal(key_id, is_invalidate=False, is_full_sn=False)
-- [ ] atcab_updateextra(mode, value)
-- [ ] atcab_verify(mode, key_id, signature, public_key=None, other_data=None, mac=None)
-- [ ] atcab_verify_extern(message, signature, public_key)
+- [x] atcab_sign_base(mode, key_id)
+- [x] atcab_sign(key_id, message)
+- [x] atcab_sign_internal(key_id, is_invalidate=False, is_full_sn=False)
+- [x] atcab_updateextra(mode, value)
+- [x] atcab_verify(mode, key_id, signature, public_key=None, other_data=None, mac=None)
+- [x] atcab_verify_extern(message, signature, public_key)
 - [ ] atcab_verify_extern_mac(message, signature, public_key, num_in, io_key, is_verified)
-- [ ] atcab_verify_stored(message, signature, key_id)
+- [x] atcab_verify_stored(message, signature, key_id)
 - [ ] atcab_verify_stored_mac(message, signature, key_id, num_in, io_key, is_verified)
 - [ ] atcab_verify_validate( key_id, signature, other_data, is_verified)
 - [ ] atcab_verify_invalidate( key_id, signature, other_data, is_verified)
-- [ ] atcab_write(zone, address, value=None, mac=None)
-- [ ] atcab_write_zone(zone, slot=0, block=0, offset=0, data=None)
-- [ ] atcab_write_bytes_zone(zone, slot=0, offset=0, data=None)
+- [x] atcab_write(zone, address, value=None, mac=None)
+- [x] atcab_write_zone(zone, slot=0, block=0, offset=0, data=None)
+- [x] atcab_write_bytes_zone(zone, slot=0, offset=0, data=None)
 - [ ] atcab_write_pubkey(slot, public_key)
-- [ ] atcab_write_config_zone(config_data)
+- [x] atcab_write_config_zone(config_data)
 - [ ] atcab_write_enc(key_id, block, data, enc_key, enc_key_id)
 - [ ] atcab_write_config_counter(counter_id, counter_value)
 

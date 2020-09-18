@@ -1,3 +1,5 @@
+//! Module to craft command packets
+
 use crate::constants;
 use serde::{Deserialize, Serialize};
 
@@ -5,19 +7,26 @@ use serde::{Deserialize, Serialize};
 /// Security commands are sent (over i2c) to the device and responses received from the device 
 /// This struct holds 'input commands'. It does not include the 'data payload' section
 pub struct ATCAPacket<'a> {
-    pub pktID: u8,
-    pub txsize: u8,
+    /// pkt_id: 1 byte value of 0x03 for normal operation
+    pub pkt_id: u8, 
+    /// 1 byte value that represents the number of bytes to be transferred to the device
+    pub txsize: u8, 
+    /// Command Opcode 
     pub opcode: u8,
+    /// An additional 1 byte command parameter that must always be present. Value depends on the command being sent
     pub param1: u8,
+    /// An additional 2 byte Command parameter that must always be present. Vlaue depends on the command being sent
     pub param2: [u8; 2],
+    /// data bytes 
     pub req_data: &'a [u8],
+    /// 2 byte CRC
     pub crc16: [u8; 2],
 }
 
 impl<'a> ATCAPacket<'_> {
     /// This methods constructs an input command packet. An input security command is sent
     /// after transmitting the 'i2c device address' and is broken down as follows
-    /// - pktID: 1 byte value of 0x03 for normal operation
+    /// - pkt_id: 1 byte value of 0x03 for normal operation
     /// - txsize: 1 byte value that represents the number of bytes to be transferred to the device, 
     ///           including count byte,
     ///           packet bytes, and checksum bytes. 
@@ -43,7 +52,7 @@ impl<'a> ATCAPacket<'_> {
             Some(t) => self.param2 = t,
         }
 
-        let mut packet: [u8; 5] = [
+        let packet: [u8; 5] = [
             self.txsize,
             self.opcode,
             self.param1,
@@ -95,19 +104,26 @@ impl<'a> ATCAPacket<'_> {
 /// Security commands are sent (over i2c) to the device and responses received from the device 
 /// This struct holds 'input commands'. It includes the 'data payload' section
 pub struct ATCAPacket_w_data<'a> {
-    pub pktID: u8,
-    pub txsize: u8,
-    pub opcode: u8,
-    pub param1: u8,
-    pub param2: [u8; 2],
-    pub req_data: &'a [u8],
-    pub crc16: [u8; 2],
+ /// pkt_id: 1 byte value of 0x03 for normal operation
+ pub pkt_id: u8, 
+ /// 1 byte value that represents the number of bytes to be transferred to the device
+ pub txsize: u8, 
+ /// Command Opcode 
+ pub opcode: u8,
+ /// An additional 1 byte command parameter that must always be present. Value depends on the command being sent
+ pub param1: u8,
+ /// An additional 2 byte Command parameter that must always be present. Vlaue depends on the command being sent
+ pub param2: [u8; 2],
+ /// data bytes 
+ pub req_data: &'a [u8],
+ /// 2 byte CRC
+ pub crc16: [u8; 2],
 }
 
 impl<'a> ATCAPacket_w_data<'_> {
     /// This methods constructs an input command packet. An input security command is sent
     /// after transmitting the 'i2c device address' and is broken down as follows
-    /// - pktID: 1 byte value of 0x03 for normal operation
+    /// - pkt_id: 1 byte value of 0x03 for normal operation
     /// - txsize: 1 byte value that represents the number of bytes to be transferred to the device, 
     ///           including count byte,
     ///           packet bytes, and checksum bytes. 
@@ -134,7 +150,7 @@ impl<'a> ATCAPacket_w_data<'_> {
             Some(t) => self.param2 = t,
         }
 
-        let mut packet: &[&[u8]] = &[
+        let packet: &[&[u8]] = &[
             &[self.txsize],
             &[0, self.opcode],
             &[0, 0, self.param1],
@@ -158,7 +174,7 @@ impl<'a> ATCAPacket_w_data<'_> {
         let mut crc: u16 = 0x0000;
         let mut data_bit;
         let mut crc_bit;
-        let mut d: u8 = 0;
+        let mut d: u8;
         for i in 0..length {
             // We're looping through an array of slices. The last slice is the req_data element
             // So, we handle the last index in the array separately.

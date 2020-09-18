@@ -3,8 +3,8 @@
 // #![allow(warnings)]
 
 extern crate nrf52840_hal as hal;
-extern crate panic_halt;
 extern crate nrf52840_mdk;
+extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,9 +12,8 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
-use Rusty_CryptoAuthLib::ATECC608A;
 use nrf52840_mdk::Pins;
-
+use Rusty_CryptoAuthLib::ATECC608A;
 
 #[entry]
 fn main() -> ! {
@@ -31,11 +30,13 @@ fn main() -> ! {
     let mut atecc608a = ATECC608A::new(i2c, delay, timer).unwrap();
 
     // INFO COMMAND EXAMPLE
-    let _info = match atecc608a.atcab_info() {
+    let revision_id = &[0x00, 0x00, 0x60, 0x02];
+    let info = match atecc608a.atcab_info() {
         Ok(v) => v,
         Err(e) => panic!("ERROR: {:?}", e),
     };
 
+    assert_eq!(&info[..], revision_id);
     loop {}
 }
 

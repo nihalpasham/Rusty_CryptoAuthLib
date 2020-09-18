@@ -1,3 +1,7 @@
+//! Library constants 
+
+#![allow(dead_code)]
+
 pub(crate) const ATCA_CMD_SIZE_MIN: u8 = 7;
 pub(crate) const ATCA_CMD_SIZE_MAX: u8 = 4 * 36 + 7;
 pub(crate) const CMD_STATUS_SUCCESS: u8 = 0x00;
@@ -439,9 +443,11 @@ pub(crate) const WRITE_ZONE_OTP: u8 = 1;
 pub(crate) const WRITE_ZONE_DATA: u8 = 2;
 pub(crate) const WRITE_RSP_SIZE: u8 = 4;
 
+/// Struct to hold `max-execution time` of the command being processed. 
 #[derive(Copy, Clone, Debug)]
 pub struct Time(pub u8);
 
+/// Helper enum to retrieve `max-execution time` for a command. 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum EXECUTION_TIME {
     ATECC608A(ATECC608A_EXECUTION_TIME),
@@ -455,6 +461,8 @@ impl EXECUTION_TIME {
     }
 }
 
+/// Enum to hold `max-execution time` for each command
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Debug)]
 pub enum ATECC608A_EXECUTION_TIME {
     ATCA_AES(u8),
@@ -482,7 +490,9 @@ pub enum ATECC608A_EXECUTION_TIME {
 }
 
 impl ATECC608A_EXECUTION_TIME {
-    pub fn get_tExec(self) -> Time {
+    /// This method takes no arguments. It returns a `Time` struct 
+    /// which contains the `max-execution time` for the command sent to the device. 
+    pub fn get_t_exec(self) -> Time {
         match self {
             ATECC608A_EXECUTION_TIME::ATCA_AES(ATCA_AES) => Time(27),
             ATECC608A_EXECUTION_TIME::ATCA_CHECKMAC(ATCA_CHECKMAC) => Time(40),
@@ -550,6 +560,8 @@ pub(crate) const ATCA_HEALTH_TEST_ERROR: u8 = 0xFA;
 pub(crate) const ATCA_ALLOC_FAILURE: u8 = 0xFB;
 pub(crate) const ATCA_WATCHDOG_ABOUT_TO_EXPIRE: u8 = 0xEE;
 
+/// Struct to hold command `Status Errors`
+#[derive(Copy, Clone, Debug)]
 pub struct StatusError(pub u8, pub ATCA_ERRORS);
 pub(crate) enum DECODE_ERROR {}
 
@@ -570,8 +582,12 @@ impl DECODE_ERROR {
         }
     }
 }
+
+/// Struct to hold device `Usage Errors`
+#[allow(missing_docs)]
+#[derive(Copy, Clone, Debug)]
 pub enum ATCA_ERRORS {
-    ConfigZoneLockedError(&'static str),
+    ConfigZoneLockedError(&'static str), 
     DataZoneLockedError(&'static str),
     WakeFailedError(&'static str),
     CheckmacVerifyFailedError(&'static str),
@@ -607,6 +623,7 @@ pub enum ATCA_ERRORS {
 }
 
 impl ATCA_ERRORS {
+    /// This method does not take any arguments. It returns an `error-string` describing the error.
     pub fn get_string_error(self) -> &'static str {
         match self {
             ATCA_ERRORS::ConfigZoneLockedError(val) => val,
@@ -624,107 +641,107 @@ impl ATCA_ERRORS {
     }
 }
 
-/// Packet COUNTS
-pub enum PKT_COUNT {
-    ATCA_KEY_COUNT,
-    AES_COUNT,
-    CHECKMAC_COUNT,
-    COUNTER_COUNT,
-    DERIVE_KEY_COUNT_SMALL,
-    DERIVE_KEY_COUNT_LARGE,
-    ECDH_COUNT,
-    GENDIG_COUNT,
-    GENKEY_COUNT,
-    HMAC_COUNT,
-    INFO_COUNT,
-    LOCK_COUNT,
-    MAC_COUNT_SHORT,
-    MAC_COUNT_LONG,
-    NONCE_COUNT_SHORT,
-    NONCE_COUNT_LONG,
-    NONCE_COUNT_LONG_64,
-    PAUSE_COUNT,
-    PRIVWRITE_COUNT,
-    RANDOM_COUNT,
-    READ_COUNT,
-    SECUREBOOT_COUNT_DIG,
-    SECUREBOOT_COUNT_DIG_SIG,
-    SELFTEST_COUNT,
-    SHA_COUNT_SHORT,
-    SHA_COUNT_LONG,
-    SIGN_COUNT,
-    UPDATE_COUNT,
-    VERIFY_256_STORED_COUNT,
-    VERIFY_283_STORED_COUNT,
-    VERIFY_256_VALIDATE_COUNT,
-    VERIFY_283_VALIDATE_COUNT,
-    VERIFY_256_EXTERNAL_COUNT,
-    VERIFY_283_EXTERNAL_COUNT,
-}
+// /// Packet COUNTS
+// pub enum PKT_COUNT {
+//     ATCA_KEY_COUNT,
+//     AES_COUNT,
+//     CHECKMAC_COUNT,
+//     COUNTER_COUNT,
+//     DERIVE_KEY_COUNT_SMALL,
+//     DERIVE_KEY_COUNT_LARGE,
+//     ECDH_COUNT,
+//     GENDIG_COUNT,
+//     GENKEY_COUNT,
+//     HMAC_COUNT,
+//     INFO_COUNT,
+//     LOCK_COUNT,
+//     MAC_COUNT_SHORT,
+//     MAC_COUNT_LONG,
+//     NONCE_COUNT_SHORT,
+//     NONCE_COUNT_LONG,
+//     NONCE_COUNT_LONG_64,
+//     PAUSE_COUNT,
+//     PRIVWRITE_COUNT,
+//     RANDOM_COUNT,
+//     READ_COUNT,
+//     SECUREBOOT_COUNT_DIG,
+//     SECUREBOOT_COUNT_DIG_SIG,
+//     SELFTEST_COUNT,
+//     SHA_COUNT_SHORT,
+//     SHA_COUNT_LONG,
+//     SIGN_COUNT,
+//     UPDATE_COUNT,
+//     VERIFY_256_STORED_COUNT,
+//     VERIFY_283_STORED_COUNT,
+//     VERIFY_256_VALIDATE_COUNT,
+//     VERIFY_283_VALIDATE_COUNT,
+//     VERIFY_256_EXTERNAL_COUNT,
+//     VERIFY_283_EXTERNAL_COUNT,
+// }
 
-impl PKT_COUNT {
-    pub fn get_pkt_count(self) -> u8 {
-        match self {
-            PKT_COUNT::ATCA_KEY_COUNT => 16,
-            PKT_COUNT::AES_COUNT => 23,
-            PKT_COUNT::CHECKMAC_COUNT => 84,
-            PKT_COUNT::COUNTER_COUNT => 7,
-            PKT_COUNT::DERIVE_KEY_COUNT_SMALL => 7,
-            PKT_COUNT::DERIVE_KEY_COUNT_LARGE => 39,
-            PKT_COUNT::ECDH_COUNT => 7 + 64,
-            PKT_COUNT::GENDIG_COUNT => 7,
-            PKT_COUNT::GENKEY_COUNT => 7,
-            PKT_COUNT::HMAC_COUNT => 7,
-            PKT_COUNT::INFO_COUNT => 7,
-            PKT_COUNT::LOCK_COUNT => 7,
-            PKT_COUNT::MAC_COUNT_SHORT => 7,
-            PKT_COUNT::MAC_COUNT_LONG => 39,
-            PKT_COUNT::NONCE_COUNT_SHORT => 7 + 20,
-            PKT_COUNT::NONCE_COUNT_LONG => 7 + 32,
-            PKT_COUNT::NONCE_COUNT_LONG_64 => 7 + 64,
-            PKT_COUNT::PAUSE_COUNT => 7,
-            PKT_COUNT::PRIVWRITE_COUNT => 75,
-            PKT_COUNT::RANDOM_COUNT => 7,
-            PKT_COUNT::READ_COUNT => 7,
-            PKT_COUNT::SECUREBOOT_COUNT_DIG => 7 + 32,
-            PKT_COUNT::SECUREBOOT_COUNT_DIG_SIG => 7 + 32 + 64,
-            PKT_COUNT::SELFTEST_COUNT => 7,
-            PKT_COUNT::SHA_COUNT_SHORT => 7,
-            PKT_COUNT::SHA_COUNT_LONG => 7,
-            PKT_COUNT::SIGN_COUNT => 7,
-            PKT_COUNT::UPDATE_COUNT => 7,
-            PKT_COUNT::VERIFY_256_STORED_COUNT => 71,
-            PKT_COUNT::VERIFY_283_STORED_COUNT => 79,
-            PKT_COUNT::VERIFY_256_VALIDATE_COUNT => 90,
-            PKT_COUNT::VERIFY_283_VALIDATE_COUNT => 98,
-            PKT_COUNT::VERIFY_256_EXTERNAL_COUNT => 135,
-            PKT_COUNT::VERIFY_283_EXTERNAL_COUNT => 151,
-            _ => 0,
-        }
-    }
-}
+// impl PKT_COUNT {
+//     pub fn get_pkt_count(self) -> u8 {
+//         match self {
+//             PKT_COUNT::ATCA_KEY_COUNT => 16,
+//             PKT_COUNT::AES_COUNT => 23,
+//             PKT_COUNT::CHECKMAC_COUNT => 84,
+//             PKT_COUNT::COUNTER_COUNT => 7,
+//             PKT_COUNT::DERIVE_KEY_COUNT_SMALL => 7,
+//             PKT_COUNT::DERIVE_KEY_COUNT_LARGE => 39,
+//             PKT_COUNT::ECDH_COUNT => 7 + 64,
+//             PKT_COUNT::GENDIG_COUNT => 7,
+//             PKT_COUNT::GENKEY_COUNT => 7,
+//             PKT_COUNT::HMAC_COUNT => 7,
+//             PKT_COUNT::INFO_COUNT => 7,
+//             PKT_COUNT::LOCK_COUNT => 7,
+//             PKT_COUNT::MAC_COUNT_SHORT => 7,
+//             PKT_COUNT::MAC_COUNT_LONG => 39,
+//             PKT_COUNT::NONCE_COUNT_SHORT => 7 + 20,
+//             PKT_COUNT::NONCE_COUNT_LONG => 7 + 32,
+//             PKT_COUNT::NONCE_COUNT_LONG_64 => 7 + 64,
+//             PKT_COUNT::PAUSE_COUNT => 7,
+//             PKT_COUNT::PRIVWRITE_COUNT => 75,
+//             PKT_COUNT::RANDOM_COUNT => 7,
+//             PKT_COUNT::READ_COUNT => 7,
+//             PKT_COUNT::SECUREBOOT_COUNT_DIG => 7 + 32,
+//             PKT_COUNT::SECUREBOOT_COUNT_DIG_SIG => 7 + 32 + 64,
+//             PKT_COUNT::SELFTEST_COUNT => 7,
+//             PKT_COUNT::SHA_COUNT_SHORT => 7,
+//             PKT_COUNT::SHA_COUNT_LONG => 7,
+//             PKT_COUNT::SIGN_COUNT => 7,
+//             PKT_COUNT::UPDATE_COUNT => 7,
+//             PKT_COUNT::VERIFY_256_STORED_COUNT => 71,
+//             PKT_COUNT::VERIFY_283_STORED_COUNT => 79,
+//             PKT_COUNT::VERIFY_256_VALIDATE_COUNT => 90,
+//             PKT_COUNT::VERIFY_283_VALIDATE_COUNT => 98,
+//             PKT_COUNT::VERIFY_256_EXTERNAL_COUNT => 135,
+//             PKT_COUNT::VERIFY_283_EXTERNAL_COUNT => 151,
+//             _ => 0,
+//         }
+//     }
+// }
 
-/// Test Enum
-#[derive(Copy, Clone, Debug)]
-pub(crate) enum TEST_ENUM {
-    SHA_TEST_DATA_1,
-    SHA_TEST_DATA_2,
-}
+// /// Test Enum
+// #[derive(Copy, Clone, Debug)]
+// pub(crate) enum TEST_ENUM {
+//     SHA_TEST_DATA_1,
+//     SHA_TEST_DATA_2,
+// }
 
-impl<'a> TEST_ENUM {
-    pub fn get_value(self) -> &'a [u8] {
-        match self {
-            TEST_ENUM::SHA_TEST_DATA_1 => &[0x01, 0x02, 0x03, 0x04, 0x05],
-            TEST_ENUM::SHA_TEST_DATA_2 => &[0x1f, 0xe6, 0x54, 0xc1, 0x80, 0x88, 0xe7, 0xfe, 0xf0, 0x84, 0xf9, 0x8a, 0x1a, 0x12,
-                                            0xdb, 0x84, 0x69, 0x54, 0x34, 0x25, 0x06, 0xf5, 0x17, 0x69, 0x18, 0x9e, 0x3a, 0x90,
-                                            0x79, 0x2f, 0xd3, 0x28, 0xcf, 0x51, 0x5d, 0x1e, 0x44, 0xbb, 0xa4, 0x9d, 0x34, 0xde,
-                                            0x3b, 0x99, 0xca, 0x4c, 0x5e, 0x7e, 0xf4, 0x3a, 0xf6, 0xda, 0x41, 0x3c, 0x91, 0xc7,
-                                            0x98, 0x70, 0xd4, 0x87, 0x68, 0xac, 0x74, 0x5b, 0x1f, 0xe6, 0x54, 0xc1, 0x80, 0x88,
-                                            0xe7, 0xfe, 0xf0, 0x84, 0xf9, 0x8a, 0x1a, 0x12, 0xdb, 0x84, 0x69, 0x54, 0x34, 0x25,
-                                            0x06, 0xf5, 0x17, 0x69, 0x18, 0x9e, 0x3a, 0x90, 0x79, 0x2f, 0xd3, 0x28],
-        }
-    }
-}
+// impl<'a> TEST_ENUM {
+//     pub fn get_value(self) -> &'a [u8] {
+//         match self {
+//             TEST_ENUM::SHA_TEST_DATA_1 => &[0x01, 0x02, 0x03, 0x04, 0x05],
+//             TEST_ENUM::SHA_TEST_DATA_2 => &[0x1f, 0xe6, 0x54, 0xc1, 0x80, 0x88, 0xe7, 0xfe, 0xf0, 0x84, 0xf9, 0x8a, 0x1a, 0x12,
+//                                             0xdb, 0x84, 0x69, 0x54, 0x34, 0x25, 0x06, 0xf5, 0x17, 0x69, 0x18, 0x9e, 0x3a, 0x90,
+//                                             0x79, 0x2f, 0xd3, 0x28, 0xcf, 0x51, 0x5d, 0x1e, 0x44, 0xbb, 0xa4, 0x9d, 0x34, 0xde,
+//                                             0x3b, 0x99, 0xca, 0x4c, 0x5e, 0x7e, 0xf4, 0x3a, 0xf6, 0xda, 0x41, 0x3c, 0x91, 0xc7,
+//                                             0x98, 0x70, 0xd4, 0x87, 0x68, 0xac, 0x74, 0x5b, 0x1f, 0xe6, 0x54, 0xc1, 0x80, 0x88,
+//                                             0xe7, 0xfe, 0xf0, 0x84, 0xf9, 0x8a, 0x1a, 0x12, 0xdb, 0x84, 0x69, 0x54, 0x34, 0x25,
+//                                             0x06, 0xf5, 0x17, 0x69, 0x18, 0x9e, 0x3a, 0x90, 0x79, 0x2f, 0xd3, 0x28],
+//         }
+//     }
+// }
 
 // ConfigZoneLockedError(&'static str),
 //     DataZoneLockedError("Configuration Enabled"),

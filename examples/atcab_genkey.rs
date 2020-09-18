@@ -3,8 +3,8 @@
 // #![allow(warnings)]
 
 extern crate nrf52840_hal as hal;
-extern crate panic_halt;
 extern crate nrf52840_mdk;
+extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,9 +12,8 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
-use Rusty_CryptoAuthLib::ATECC608A;
 use nrf52840_mdk::Pins;
-
+use Rusty_CryptoAuthLib::ATECC608A;
 
 #[entry]
 fn main() -> ! {
@@ -31,17 +30,19 @@ fn main() -> ! {
     let mut atecc608a = ATECC608A::new(i2c, delay, timer).unwrap();
 
     // GENKEY COMMAND EXAMPLE
-    // Note: TFLXTLSConfig has slot 2 configured to hold an ECC private key. 
-    // So, only GENKEY AND PRIVWRITE commands can be used to write (i.e. store or generate private keys) to this slot. 
+    // Note: TFLXTLSConfig has slot 2 configured to hold an ECC private key.
+    // So, only GENKEY AND PRIVWRITE commands can be used to write (i.e. store or generate private keys) to this slot.
     // Check `Slot access policies` section in my GitHub readme for more info.
     let slot = 0x02;
-    let gen_public_key = match atecc608a.atcab_genkey(slot) { // public key retreived upon 
-        Ok(v) => v,                                           // generating and storing a new (random) ECC private key
+    let gen_public_key = match atecc608a.atcab_genkey(slot) {
+        // public key retreived upon
+        Ok(v) => v, // generating and storing a new (random) ECC private key
         Err(e) => panic!("Error generating ECC private key: {:?}", e), // in slot 2.
     };
 
-    let comp_public_key = match atecc608a.atcab_get_pubkey(slot) { // public key computed from
-        Ok(v) => v,                                                // the previously generated and stored
+    let comp_public_key = match atecc608a.atcab_get_pubkey(slot) {
+        // public key computed from
+        Ok(v) => v, // the previously generated and stored
         Err(e) => panic!("Error retrieving ECC public key: {:?}", e), // private key in slot 2.
     };
 
