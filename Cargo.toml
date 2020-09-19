@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 name = "Rusty_CryptoAuthLib"
 readme = "README.md"
 repository = "https://github.com/nihalpasham/Rusty_CryptoAuthLib.git"
-version = "0.1.1"
+version = "1.0.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -36,10 +36,8 @@ debug = true
 nrf-hal-common = {version = "0.10.0", path = '/Users/Nil/devspace/rust/projects/rustscratchspace/nrf-hal/nrf-hal-common'}
 
 [dev-dependencies]
-nrf52840-hal = "0.10.0"
-panic-halt = "0.2.0"
-nrf52840-mdk = {git = "https://github.com/nihalpasham/nrf52840-mdk-rs"}
-cortex-m-semihosting = "0.3.5"
 cortex-m-rt = "0.6.12"
-
-
+cortex-m-semihosting = "0.3.5"
+nrf52840-hal = "0.10.0"
+nrf52840-mdk = {git = "https://github.com/nihalpasham/nrf52840-mdk-rs"}
+panic-halt = "0.2.0"
