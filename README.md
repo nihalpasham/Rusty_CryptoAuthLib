@@ -159,12 +159,16 @@ Writing the ATECC-TFLXTLS configuration to the device will yield a personalised 
 | 14    | Validated public key              |
 | 15    | Secure boot public key            |
 
-**Important Notes**
-1. After writing the config-zone bytes to the configuration zone, we have to lock the config zone before we can read/write to the data zone. 
-2. Locking the Config zone is an **irreversible operation**. So, please make sure you got everything right.
-3. Once that's done, you can start populating the device with private ECC keys in slots 0-4 or public keys of your choice in slot 13-15 etc. 
-    -   Note: After locking the config zone, data and OTP zone are writable, depending on the configuration of slot access policies. However, policies are not strictly enforced while in this state i.e. some commands like 'write or genkey' will still work even though a slot is configured to be (permanently) not writable.  
-4. Only after locking the data zone (byte [86] in the config zone) are access policies for slots strictly enforced.
+**Important: Please do not proceed before reading this section**
+1. To write the ATECC-TFLXTLS configuration bytes to the device, use the example `atcab_write_config_zone.rs` included in the examples folder. 
+2. Use the read command example - `atcab_read_config_zone.rs` to read contents (i.e. all 128 bytes) of config zone. This is just a double check to see if the correct set of bytes (i.e. ATECC-TFLXTLS config bytes) were written to the device.
+3. Before we can begin populating (i.e. read from or write to) data or OTP zones, we have to lock the config zone. Use the `atcab_lock_config_zone_crc.rs` example to lock the config zone. Note: locking the config zone is an **irreversible operation**. So, please make sure you get everything right before you do.
+3. Once that's done, you can start populating the device's data zone with private ECC keys or externally generated public keys of your choice as per the above table. 
+    -   The example `atcab_sign_and_verify.rs` does just that. It generates and loads a new (random) ECC private key into slot 3 of the device. The private key is generated 'within-the-device' and never leaves it. The example contains a test message, which is signed by the private key and verified by the corresponding 'computed' public key. 
+    -   Note: In step 3, you can do this for all private keys slots (0-4) as not all access policies are strictly enforced. For example, private keys in sot 0-1 are permanent and slot2-4 are updateable as per policy. But because the data zone is unlocked, commands like `WRITE or GENKEY` will still work without restrictions, even though a slot is configured to be (permanently) not writable. 
+    -   In other words, this is step where you actually populate all slots on the device with the keys, certificates and other data and when you're happy with the contents in the data zone, move to step 4.
+4. Only after locking the data zone (i.e. byte [86] or `LockValue` of the config zone) are access policies for slots strictly enforced. For example: you can no longer issue the GENKEY command to generate a new random private for slots 0 and 1 but you can issue GENKEY to compute the public key of the corresponding *permanent* private keys in slots 0 and 1.
+    -   Note: I'm yet to implement a method to lock the data zone. I will be adding more commands that will need testing. If you need it, drop a note.
 
 
 ## Currently supported commands are:
@@ -181,7 +185,9 @@ Writing the ATECC-TFLXTLS configuration to the device will yield a personalised 
 ## Support to be added for:
 - SELFTEST
 - RANDOM
-
+- SECUREBOOT
+- AES
+- KDF
 
 (1) Not all features are implemented, see follow list for details
 

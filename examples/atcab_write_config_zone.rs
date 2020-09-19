@@ -3,8 +3,8 @@
 // #![allow(warnings)]
 
 extern crate nrf52840_hal as hal;
-extern crate panic_halt;
 extern crate nrf52840_mdk;
+extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,8 +12,8 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
-use Rusty_CryptoAuthLib::ATECC608A;
 use nrf52840_mdk::Pins;
+use Rusty_CryptoAuthLib::ATECC608A;
 
 #[derive(Copy, Clone, Debug)]
 pub enum TestEnum {
@@ -52,7 +52,6 @@ impl<'a> TestEnum {
     }
 }
 
-
 #[entry]
 fn main() -> ! {
     let p = Peripherals::take().unwrap();
@@ -67,13 +66,15 @@ fn main() -> ! {
     let timer = Timer::new(p.TIMER1);
     let mut atecc608a = ATECC608A::new(i2c, delay, timer).unwrap();
 
-    // WRITE COMMAND EXAMPLE 
+    // WRITE COMMAND EXAMPLE
 
     // Check to see if the device's config zone is locked before any write. (Config zone ID- 0x00  )
-    if !(atecc608a.atcab_is_locked(0x00)) { 
+    let zone_id = 0x00;
+    if !(atecc608a.atcab_is_locked(zone_id)) {
         let selection = TestEnum::AteccTflxTlsConfig;
         let write_response = atecc608a.atcab_write_config_zone(selection.get_value());
-        assert_eq!([[0, 0x03, 0x40]; 15], &write_response[..])
+        assert_eq!([[0, 0x03, 0x40]; 15], &write_response[..]) // write_response will contain an array of `15`
+                                                               // 3-byte responses, one for each write.
     }
 
     loop {}

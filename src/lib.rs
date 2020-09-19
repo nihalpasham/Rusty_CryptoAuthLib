@@ -333,7 +333,7 @@ where
     /// -   Takes none (but method can be extended if required)
     ///
     /// Returns:
-    /// -   4-byte revision info [00 00 60 vv] indicated by ATECC608A. vv is the most recent silicon version as of this writing.
+    /// -   4-byte revision info [00 00 60 vv] indicated by ATECC608A. vv is the most recent silicon version.
     pub fn atcab_info(
         &mut self,
     ) -> Result<[u8; (constants::INFO_RSP_SIZE - 3) as usize], &'static str> {
@@ -431,7 +431,9 @@ where
     /// Method arguments:
     /// -   data: data as a slice of bytes
     ///
-    /// Returns a 32 byte digest if successful or an error string describing the error.  
+    /// Returns:
+    /// -   a 32 byte digest if successful
+    /// -   an error string describing the error.  
     pub fn atcab_sha(
         &mut self,
         data: &[u8],
@@ -485,6 +487,17 @@ where
     // **********************GENKEY COMMANDS*****************************
     //
     /// This methods crafts a `GENKEY command` packet
+    ///
+    /// Method arguments:
+    /// -   mode: mode of operation, possible values 0x04, 0x0C.  Public key is generated and output on the bus (always).
+    /// -   key_id: slot id in the data zone
+    /// -   other_data: In the `private key- stored in TEMPKEY` mode, GenKey command can be used to generate an ephemeral ECC private key and place it in SRAM where
+    ///     there is no limit on writing to a memory location. This key cannot be read out but may be used by the ECDH
+    ///     command. In this mode, the private Key is stored in TempKey and requires other_data to be [0x00, 0x00, 0x00].
+    ///     other_data is not included in all other modes.
+    ///
+    /// Returns:
+    /// -   A heapless Vec containing the serialized command packet bytes.
     pub fn atcab_genkey_base(
         &mut self,
         mode: u16,
@@ -531,6 +544,13 @@ where
     /// parameter. Returns a 64 byte Public Key - X and Y coordinates (32 bytes each) or a failure error string.
     ///
     /// The private key stored in the designated slot can never be read (i.e. never leaves the device).
+    ///
+    /// Method arguments:
+    /// -   key_id: slot id in the data zone
+    ///
+    /// Returns:
+    /// -   a 64 byte array containing public keys X and Y coordinates, indicating the command’s success
+    /// -   or an error string, describing the error.
     pub fn atcab_genkey(&mut self, key_id: u16) -> Result<[u8; 64], &'static str> {
         let packet = self.atcab_genkey_base(constants::GENKEY_MODE_PRIVATE as u16, key_id, [0; 3]);
         let genkey_resp = match self.send_packet(
@@ -547,7 +567,12 @@ where
     /// parameter. This mode of the command may be used to avoid storing the public key on the device at
     /// the expense of the time required to regenerate it.
     ///
-    /// Returns a 64 byte Public Key - X and Y coordinates (32 bytes each) or a failure error string.
+    /// Method arguments:
+    /// -   key_id: slot id of data zone
+    ///
+    /// Returns:
+    /// -   a 64 byte array containing public keys X and Y coordinates, indicating the command’s success
+    /// -   or an error string, describing the error.
     pub fn atcab_get_pubkey(&mut self, key_id: u16) -> Result<[u8; 64], &'static str> {
         let packet = self.atcab_genkey_base(constants::GENKEY_MODE_PUBLIC as u16, key_id, [0; 3]);
         let genkey_resp = match self.send_packet(
@@ -563,6 +588,20 @@ where
     // *****************************NONCE COMMANDS**********************************
     //
     /// This method crafts a `NONCE command` packet
+    ///
+    /// Method arguments:
+    /// -   mode: random mode or fixed mode
+    ///     -   for random, values can be 0x00 or 0x01
+    ///     -   for fixed, values can be 0x3, 0x43, 0x83, 0x23, 0x63
+    /// -   zero:
+    ///     -   for random, values can be [0x00, 0x00] or [0x80, 0x00]
+    ///     -   for fixed, value is always [0x00, 0x00]
+    /// -   num_in:  
+    ///     -   for random, input is always 20 random bytes
+    ///     -   for fixed, input is either 32 or 64 bytes
+    ///
+    /// Returns:
+    /// -   A heapless Vec containing the serialized command packet bytes.
     pub fn atcab_base_nonce(&mut self, mode: u16, zero: u16, num_in: &[u8]) -> Vec<u8, U74> {
         let nonce_mode = mode & constants::NONCE_MODE_MASK as u16;
         if nonce_mode == constants::NONCE_MODE_SEED_UPDATE as u16
@@ -618,8 +657,14 @@ where
     /// The size of the nonce may be either 32 or 64 bytes. This mode of the Nonce
     /// command does not run a SHA256 calculation or generate a random number.
     ///
-    /// Returns a 1-byte response - 0x00 (along with 2 CRC bytes) if the command is completed successfully.
-    /// Otherwise an error string is received.
+    /// Method arguments -
+    /// -   target: where to load the fixed nonce - TEMPKEY or Message Digest Buffer
+    /// -   num_in: The size of the nonce may be either 32 or 64 bytes. This mode of the Nonce
+    ///     command does not run a SHA256 calculation or generate a random number.
+    ///
+    /// Returns:
+    /// -   a 1-byte response - 0x00 (along with 2 CRC bytes) if the command is completed successfully.
+    /// -   Otherwise an error string is received.
     pub fn atcab_nonce_load(
         &mut self,
         target: u16,
@@ -657,8 +702,13 @@ where
     /// The size of the nonce should be 32 bytes. This mode of the Nonce
     /// command does not run a SHA256 calculation or generate a random number.
     ///
-    /// Returns a 1-byte response - 0x00 (along with 2 CRC bytes) if the command is completed successfully.
-    /// Otherwise an error string is received.
+    /// Method arguments -
+    /// -   num_in: The size of the nonce may be either 32 bytes. This mode of the Nonce
+    ///     command does not run a SHA256 calculation or generate a random number.
+    ///
+    /// Returns:
+    /// -   a 1-byte response - 0x00 (along with 2 CRC bytes) if the command is completed successfully.
+    /// -   Otherwise an error string is received.
     pub fn atcab_nonce(
         &mut self,
         num_in: &[u8],
@@ -701,7 +751,13 @@ where
     /// along with the following `NONCE command` parameters - OPCODE, MODE, LSB of out_type are hashed (SHA256) to produce
     /// the random nonce. This result is stored in TEMPKEY.
     ///
-    /// Response
+    /// Method arguments:
+    /// -   out_type: If out_type is 0x0000, then a `new random number` is generated based on the internal RNG. If
+    ///     out_type is 0x0080, a value stored in TempKey is used to generate a new nonce instead and the random number
+    ///     generator is not run.
+    /// -   num_in: a random 20-byte number is passed to the ATECC device
+    ///
+    /// Returns:
     /// -   if the out_type is 0x0000, it returns the 32-byte random number used to calculate the nonce.
     /// -   if the out_type is 0x0080, it returns the 32-byte Nonce (i.e. new TEMPKEY value)
     pub fn atcab_nonce_rand(
@@ -742,6 +798,15 @@ where
     // ****************************SIGN COMMANDS***********************************
     //
     /// This method crafts a `SIGN command` packet
+    ///
+    /// Method arguments:
+    /// -   mode: byte to determine if the command will sign internally generated or externally generated messages.
+    ///     -   External messages: values can be 0x80, 0xC0, 0xA0, or 0xD0
+    ///     -   Internal messages: values can be 0x00, 0x20, 0x40, or 0x60
+    /// -   key_id: slot id in the data zone
+    ///
+    /// Returns:
+    /// -   A heapless Vec containing the serialized command packet bytes.
     pub fn atcab_sign_base(&mut self, mode: u16, key_id: u16) -> Vec<u8, U10> {
         let mut q = packet::ATCAPacket {
             pkt_id: 0x03,
@@ -766,17 +831,18 @@ where
         return output;
     }
 
-    #[doc = "Rusty CryptoAuthLib API/method for Sign command"]
     /// This method is used to sign the digest of an external message by an ECC private key. It takes
-    /// 2 arguments
+    ///
+    /// Method arguments:
     /// -   The ECC private key in the slot specified by key_id is used to generate the signature.
     /// -   A digest of the message generated by the `host system`. The message can be loaded into either
-    /// the TempKey or Message Digest Buffer via the Nonce command run in fixed mode and is always 32 bytes
-    /// in length. The Sign command generates a signature using the ECDSA algorithm. Note- the digest can also
-    /// be generated via the `SHA command`.
+    ///     the TempKey or Message Digest Buffer via the Nonce command run in fixed mode and is always 32 bytes
+    ///     in length. The Sign command generates a signature using the ECDSA algorithm. Note- the digest can also
+    ///     be generated via the `SHA command`.
     ///
-    /// Returns a 64-byte response containing the signature - composed of R and S values.
-    ///
+    /// Returns:
+    /// -   a 64-byte response containing the signature - composed of R and S values.
+    /// -   or an error string descrbing the error.
     pub fn atcab_sign(
         &mut self,
         key_id: u16,
@@ -811,13 +877,15 @@ where
     /// TempKey must be generated using either the GenDig or the GenKey command. If TempKey is not valid an error will
     /// occur.
     ///
-    /// This method takes 3 arguments
+    /// Method arguments:
     /// -   key_id: The ECC private key in the slot specified by key_id is used to generate the signature.
     /// -   is_invalidate: if the resulting signature is intended to be used by Verify(Validate or Invalidate)
     ///     i.e. `mode-bit6` is zero if its verify(validate) and 1 if its verify(invalidate)
     /// -   is_full_sn: if the Serial number is to be included in the message digest calculation.
     ///
-    /// Returns a 64-byte response containing the signature - composed of R and S values.
+    /// Returns:
+    /// -   a 64-byte response containing the signature - composed of R and S values.
+    /// -   or an error string describing the error.    
     ///
     /// Typical uses include:
     /// -   Signing an internally generated random key. This is typically generated by the GenKey command.
@@ -872,6 +940,18 @@ where
     ///     `X.509 format certificates` are to be used.
     ///
     /// An optional MAC can be returned from the Verify command to defeat any man-in-the-middle attacks.    
+    ///
+    /// Method arguments:
+    /// -   mode: see above for the different modes.  
+    /// -   key_id: slot id in data zone
+    /// -   signature: 64 byte signature to be verified
+    /// -   public_key: 64 byte signature to be used to verify the signature in external mode.
+    /// -   other_data: 19 bytes of other data required when validating or invalidating a public key.
+    /// -   mac: A 32-byte MAC, if specified by the mode (only required in stored mode)
+    ///
+    /// Returns:
+    /// -   A heapless Vec containing the serialized command packet bytes.
+
     pub fn atcab_verify(
         &mut self,
         mode: u16,
@@ -961,6 +1041,16 @@ where
     /// or error or a 32-byte MAC. Prior to this command being run, the message should be written using the Nonce
     /// command in Fixed mode to either TempKey or the Message Digest Buffer. In this mode, the device merely
     /// accelerates the public key computation and returns a boolean result.
+    ///
+    /// Method arguments:
+    /// -   message: message to be signed. This is a sha256 digest of the message as a slice of bytes
+    /// -   signature: the 64 byte signature to be verified as a slice of bytes
+    /// -   pub_key: the 64 byte public key used to verify the signature as a slice of bytes.
+    ///
+    /// Returns:
+    /// -   a 3 byte array if the signature is verified
+    /// -   if the signature does not match or if there is a failure due to some other reason, an error string describing the
+    ///     error.  
     pub fn atcab_verify_extern(
         &mut self,
         message: &[u8],
@@ -1000,9 +1090,15 @@ where
     /// When using the Verify command in Stored mode, the public key to be used is stored in a data slot and does not
     /// need to be passed. Prior to this command being run, the message should be written to TempKey or the Message
     /// Digest Buffer using the Nonce command.
-    /// The output will return:
-    /// -   One byte success, fail or error code if MAC is not required or
-    /// -   A 32-byte MAC, if specified by the mode or an error code, if the command fails.
+    ///
+    /// Method arguments:
+    /// -   message: message to be signed. This is a sha256 digest of the message as a slice of bytes
+    /// -   signature: the 64 byte signature to be verified as a slice of bytes
+    ///  
+    /// Returns:
+    /// -   a 3 byte array if the signature is verified
+    /// -   if the signature does not match or if there is a failure due to some other reason, an error string describing the
+    ///     error.  
     pub fn atcab_verify_stored(
         &mut self,
         message: &[u8],
@@ -1041,6 +1137,13 @@ where
     // ***************LOCK COMMANDS**************************
 
     /// This method crafts a 'LOCK command' packet.
+    ///
+    /// Method arguments:
+    /// -   mode: byte to indicate which zone is to be locked (0x00 - for config, 0x01 - for data and OTP )
+    /// -   crc: a 2 byte checksum (optional)
+    ///
+    /// Returns:
+    /// -   A heapless Vec containing the serialized command packet bytes.  
     pub fn atcab_lock(&mut self, mode: u8, crc: [u8; 2]) -> Vec<u8, U10> {
         let mut q = packet::ATCAPacket {
             pkt_id: 0x03,
@@ -1069,6 +1172,13 @@ where
     ///
     /// The Lock command fails if the designated area is already locked.
     /// Upon successful execution, the device returns a value of zero.
+    ///
+    /// Method arguments:
+    /// -   None
+    ///
+    /// Returns:
+    /// -   a 3 byte array with byte[0] =0x00, indicating success
+    /// -   or an error string, describing the error.
     pub fn atcab_lock_config_zone(
         &mut self,
     ) -> Result<[u8; (constants::LOCK_RSP_SIZE - 1) as usize], &'static str> {
@@ -1097,6 +1207,13 @@ where
     ///
     /// - 0 = The summary value is verified before the zone is locked.
     /// - 1 = Check of the zone summary is ignored and the zone is locked regardless of the contents of the zone.
+    ///
+    /// Method argument:
+    /// -   crc: a 2 byte checksum (see above for more info)
+    ///
+    /// Returns:
+    /// -   a 3 byte array with byte[0] =0x00, indicating success
+    /// -   or an error string, describing the error.   
     pub fn atcab_lock_config_zone_crc(
         &mut self,
         crc: [u8; 2],
@@ -1148,6 +1265,17 @@ where
     /// This method crafts and sends a 'READ command' packet to the device. Upon successful
     /// execution of the command, it returns 32 (or 4) bytes. If the command fails,
     /// it returns the error in a `StatusError` struct.
+    ///
+    /// Method arguments:
+    /// -   zone: memory zone of EEPROM to read from
+    /// -   slot: if data zone, ID of slot to read from
+    /// -   block: each memory is divided in blocks of 32 bytes. This param indicate which block in a given zone
+    /// -   offset: is a 4 byte or 1 word offset into a block.
+    /// -   length: lenght of size of data to read
+    ///
+    /// Returns:
+    /// -   an max size array of 151 bytes containing `read response`
+    /// -   or an error string describing the error
     pub fn atcab_read_zone(
         &mut self,
         mut zone: u16,
@@ -1198,8 +1326,19 @@ where
         return Ok(read_resp);
     }
 
-    ///This method reads words (one four byte word or an 8-word block of 32 bytes) from one of the memory zones of the device.
-    /// Returns an array of 4 byte arrays.
+    /// This method reads words (one four byte word or an 8-word block of 32 bytes) from one of the memory zones of the device.
+    /// Returns an array of 4 max-cmd-bytes arrays.
+    ///
+    /// Method arguments:
+    /// -   zone: memory zone of EEPROM to read from
+    /// -   slot: if data zone, ID of slot to read from
+    /// -   block: each memory is divided in blocks of 32 bytes. This param indicate which block in a given zone
+    /// -   offset: is a 4 byte or 1 word offset into a block.
+    /// -   length: lenght of size of data to read
+    ///
+    /// Returns:
+    /// -   an array of 4 max-cmd-bytes arrays containing the full `read response`
+    /// -   or an error string describing the error
     pub fn atcab_read_bytes_zone(
         &mut self,
         zone: u16,
@@ -1267,10 +1406,11 @@ where
         return Ok(config_zone);
     }
 
-    /// This method takes the Zone ID (0x00 - Config zone or 0x01 - Data Zone) as an argument and checks to see
-    /// if its locked.
+    /// Method arguments:
+    /// -   Zone ID (0x00 - Config zone or 0x01 - Data Zone) (to check to see if the zone is locked.)
     ///
-    /// Returns a bool
+    /// Returns
+    /// -   a bool indicating `True` if the zone is locked.
     pub fn atcab_is_locked(&mut self, zone: u16) -> bool {
         if zone == constants::LOCK_ZONE_CONFIG as u16 || zone == constants::LOCK_ZONE_DATA as u16 {
         } else {
@@ -1309,6 +1449,7 @@ where
     ///
     /// Returns
     /// -   An array containing 128 bytes i.e. contents of config zone
+    /// -   or an error string describing the error.
     pub fn atcab_read_config_zone(&mut self) -> Result<[u8; 128], &'static str> {
         let packet = match self.atcab_read_bytes_zone(
             constants::ATCA_ZONE_CONFIG as u16,
@@ -1434,7 +1575,7 @@ where
     /// -   **Data Zone:** If the data zone is unlocked, then all bytes in all zones can be written with either plain
     ///     text or encrypted data
     ///
-    /// ## Notes
+    /// **Notes**
     /// -   Prior to EEPROM locking of config zone, all bytes (except the first 16 and bytes [84..87]) in the config zone are
     ///     writable. Data and OTP zones cannot be read or written to
     /// -   After locking the config zone, data and OTP zone are writable, depending on the configuration of slot access
@@ -1442,15 +1583,16 @@ where
     ///     will still work even though a slot is configured to be (permanently) not writable.  
     /// -   After locking the data zones byte [86]. All access policies for each slot are strictly enforced.
     ///
-    /// Locking is an irreversible operation.
+    /// `Locking is an irreversible operation.`
     ///
     /// Method arguments:
     /// -   addr: Address of first word to be written within the zone.
     /// -   data: Information to be written to the zone. May be encrypted.
     /// -   mac: Message authentication code to validate address and data.(only if data is encrypted)
     ///
-    /// Returns an 3-byte success array, where index [0] == 0x00 indicating a successful write or an error is
-    /// returned.DoubleEndedIterator
+    /// Returns:
+    /// -   an 3-byte success array, where index [0] == 0x00 indicating a successful write or
+    /// -   an error string describing the error.
     pub fn atcab_write(
         &mut self,
         zone: u16,
@@ -1555,12 +1697,8 @@ where
     /// -   offset: is an integer offset into a zone.
     /// -   data: Information to be written to the zone. May be encrypted.
     ///
-    /// Returns a heapless Vec of status_packets i.e. each element is a 3 byte array.
-    /// Details of 3-bytes are as follows
-    ///
-    /// -   Byte 1      => 00 means success, anything else is an error.
-    /// -   Byte 2-3    => checksum of 4 bytes i.e. CRC((length byte == 4) + byte 1). For a successful
-    ///                  write, this is always == [0x03, 0x40]
+    /// Returns
+    /// -   a heapless Vec of status_packets i.e. each element is a 3 byte array.
     pub fn atcab_write_bytes_zone(
         &mut self,
         zone: u16,
@@ -1705,11 +1843,12 @@ where
     /// -   mode: 0x00 to update byte [84] or 0x01 to update byte [85]
     /// -   value: LSB of 2-byte value to write contains the byte to write  
     ///
-    /// Returns a 3-byte response.
-    ///
-    /// -   Byte 1      => 00 means success, anything else is an error.
-    /// -   Byte 2-3    => checksum of 4 bytes i.e. CRC((length byte == 4) + byte 1). For a successful
+    /// Returns
+    /// -   a 3-byte response.
+    ///     -   Byte 1      => 00 means success, anything else is an error.
+    ///     -   Byte 2-3    => checksum of 4 bytes i.e. CRC((length byte == 4) + byte 1). For a successful
     ///                  write, this is always == [0x03, 0x40]
+    /// -   or an error string describing the error.
     pub fn atcab_updateextra(
         &mut self,
         mode: u16,
