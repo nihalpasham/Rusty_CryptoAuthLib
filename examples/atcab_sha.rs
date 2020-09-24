@@ -3,8 +3,8 @@
 // #![allow(warnings)]
 
 extern crate nrf52840_hal as hal;
-extern crate panic_halt;
 extern crate nrf52840_mdk;
+// extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,8 +12,10 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
-use Rusty_CryptoAuthLib::ATECC608A;
+use defmt_rtt as _; // global logger
 use nrf52840_mdk::Pins;
+use panic_probe as _; // panic_handler
+use Rusty_CryptoAuthLib::ATECC608A;
 
 /// Test Enum
 #[derive(Copy, Clone, Debug)]
@@ -52,12 +54,15 @@ fn main() -> ! {
     let delay = Timer::new(p.TIMER0);
     let timer = Timer::new(p.TIMER1);
     let mut atecc608a = ATECC608A::new(i2c, delay, timer).unwrap();
-    
+
     // SHA COMMAND EXAMPLE
     let selection = TestEnum::ShaTestData1; // or TestEnum::ShaTestData2
     let sha = match atecc608a.atcab_sha(selection.get_value()) {
         Ok(v) => v,
-        Err(e) => panic!("ERROR: {:?}", e),
+        Err(e) => {
+            defmt::error!("{:str}", e);
+            panic!("ERROR: {:?}", e)
+        }
     };
     match selection {
         TestEnum::ShaTestData1 => assert_eq!(
@@ -77,8 +82,16 @@ fn main() -> ! {
             &sha[..32]
         ),
     }
+    defmt::info!("SHA TEST SUCCESS");
 
-    loop {}
+    exit()
+}
+
+/// Terminates the application and makes `probe-run` exit with exit-code = 0
+pub fn exit() -> ! {
+    loop {
+        cortex_m::asm::bkpt();
+    }
 }
 
 #[exception]

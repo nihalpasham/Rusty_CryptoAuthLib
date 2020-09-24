@@ -20,24 +20,52 @@ heapless = "0.5.5"
 nb = "0.1.2"
 postcard = "0.5.0"
 
+[dependencies.defmt]
+branch = "main"
+git = "https://github.com/knurling-rs/defmt"
+
 [dependencies.serde]
 default-features = false
 features = ["derive"]
 version = "1.0.114"
 
 [features]
-default = ["rt"]
+default = ["rt", "defmt-default"]
 rt = ["nrf52840-hal/rt"]
 
+# default = [
+#   "defmt-default", # "dependency-a/defmt-trace",
+# ]
+
+# do NOT modify these features
+defmt-debug = []
+defmt-default = []
+defmt-error = []
+defmt-info = []
+defmt-trace = []
+defmt-warn = []
+
+[profile.dev]
+debug = 2 # default is `true`; not needed if not already overridden
+
 [profile.release]
-debug = true
+debug = 2 # default is `false`; using `true` is also OK
 
 [patch.crates-io]
 nrf-hal-common = {version = "0.10.0", path = '/Users/Nil/devspace/rust/projects/rustscratchspace/nrf-hal/nrf-hal-common'}
 
 [dev-dependencies]
+cortex-m = "0.6.3"
 cortex-m-rt = "0.6.12"
 cortex-m-semihosting = "0.3.5"
 nrf52840-hal = "0.10.0"
 nrf52840-mdk = {git = "https://github.com/nihalpasham/nrf52840-mdk-rs"}
 panic-halt = "0.2.0"
+
+[dev-dependencies.defmt-rtt]
+branch = "main"
+git = "https://github.com/knurling-rs/defmt"
+
+[dev-dependencies.panic-probe]
+branch = "main"
+git = "https://github.com/knurling-rs/probe-run"

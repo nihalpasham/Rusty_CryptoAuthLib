@@ -4,7 +4,7 @@
 
 extern crate nrf52840_hal as hal;
 extern crate nrf52840_mdk;
-extern crate panic_halt;
+// extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,7 +12,9 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
+use defmt_rtt as _; // global logger
 use nrf52840_mdk::Pins;
+use panic_probe as _; // panic_handler
 use Rusty_CryptoAuthLib::ATECC608A;
 
 #[entry]
@@ -37,7 +39,16 @@ fn main() -> ! {
     };
 
     assert_eq!(&info[..], revision_id);
-    loop {}
+    defmt::info!("REVISION INFO: {:[u8; 4]} ", info);
+
+    exit()
+}
+
+/// Terminates the application and makes `probe-run` exit with exit-code = 0
+pub fn exit() -> ! {
+    loop {
+        cortex_m::asm::bkpt();
+    }
 }
 
 #[exception]

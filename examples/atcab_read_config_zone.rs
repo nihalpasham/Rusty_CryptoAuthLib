@@ -4,7 +4,7 @@
 
 extern crate nrf52840_hal as hal;
 extern crate nrf52840_mdk;
-extern crate panic_halt;
+// extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,7 +12,9 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
+use defmt_rtt as _; // global logger
 use nrf52840_mdk::Pins;
+use panic_probe as _; // panic_handler
 use Rusty_CryptoAuthLib::ATECC608A;
 
 #[derive(Copy, Clone, Debug)]
@@ -72,13 +74,22 @@ fn main() -> ! {
         Err(e) => panic!("ERROR: {:?}", e),
     };
 
-    let selection = TestEnum::AteccTflxTlsConfig; // or TestEnum::AteccTflxTlsConfig
+    defmt::info!("{:[u8;128]}", dump_config_zone);
+
+    let selection = TestEnum::AteccTflxTlsConfig; // or TestEnum::OutofBoxConfig
     match selection {
         TestEnum::OutofBoxConfig => assert_eq!(selection.get_value(), &dump_config_zone[..]),
-        TestEnum::AteccTflxTlsConfig => assert_eq!(selection.get_value(), &dump_config_zone[..]),
-    }
+        TestEnum::AteccTflxTlsConfig => assert_eq!(selection.get_value(), &dump_config_zone[..]), // if config zone is locked
+    } // edit byte[87] in TestEnum
+      // to 0x00
+    exit()
+}
 
-    loop {}
+/// Terminates the application and makes `probe-run` exit with exit-code = 0
+pub fn exit() -> ! {
+    loop {
+        cortex_m::asm::bkpt();
+    }
 }
 
 #[exception]

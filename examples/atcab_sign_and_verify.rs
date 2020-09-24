@@ -4,15 +4,17 @@
 
 extern crate nrf52840_hal as hal;
 extern crate nrf52840_mdk;
-extern crate panic_halt;
+// extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
 use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
-use cortex_m_semihosting::hprintln;
+// use cortex_m_semihosting::hprintln;
+use defmt_rtt as _; // global logger
 use nrf52840_mdk::Pins;
+use panic_probe as _; // panic_handler
 use Rusty_CryptoAuthLib::ATECC608A;
 
 #[entry]
@@ -62,22 +64,23 @@ fn main() -> ! {
     };
 
     // Verify if the signature generated in the previous step is correct.
-    // If signature does not match (or if you get any other error), `e` will contain an approriate `error-string` 
+    // If signature does not match (or if you get any other error), `e` will contain an approriate `error-string`
     // verified[0] == 0x00, means the signature was successfully verified by the device.
-    let verified = match atecc608a.atcab_verify_extern(
-        &digest[..32],
-        &signature[..],
-        &comp_public_key[..],
-    ) {
-        Ok(v) => v,
-        Err(e) => panic!("Error verifying ECC signature: {:?}", e),
-    };
+    let verified =
+        match atecc608a.atcab_verify_extern(&digest[..32], &signature[..], &comp_public_key[..]) {
+            Ok(v) => v,
+            Err(e) => panic!("Error verifying ECC signature: {:?}", e),
+        };
 
-    if verified[0] == 0x00 {
-        hprintln!("pub_key : {:?}", &comp_public_key[..]).unwrap(); //Note: you'll need to enable semihosting to see the output
+    defmt::info!("verified[0]: 0x{:u8} ", verified[0]); // verified[0] must be equal to 0x00
+    exit()
+}
+
+/// Terminates the application and makes `probe-run` exit with exit-code = 0
+pub fn exit() -> ! {
+    loop {
+        cortex_m::asm::bkpt();
     }
-
-    loop {}
 }
 
 #[exception]

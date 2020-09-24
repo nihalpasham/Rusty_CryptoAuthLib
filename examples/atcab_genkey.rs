@@ -4,7 +4,7 @@
 
 extern crate nrf52840_hal as hal;
 extern crate nrf52840_mdk;
-extern crate panic_halt;
+// extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 use hal::gpio::{p0, p1};
@@ -12,7 +12,9 @@ use hal::target::Peripherals;
 use hal::timer::Timer;
 use hal::twim::{self, Twim};
 // use cortex_m_semihosting::hprintln;
+use defmt_rtt as _; // global logger
 use nrf52840_mdk::Pins;
+use panic_probe as _; // panic_handler
 use Rusty_CryptoAuthLib::ATECC608A;
 
 #[entry]
@@ -39,16 +41,25 @@ fn main() -> ! {
         Ok(v) => v, // generating and storing a new (random) ECC private key
         Err(e) => panic!("Error generating ECC private key: {:?}", e), // in slot 2.
     };
+    defmt::info!("info = {:[u8; 64]} ", gen_public_key);
 
     let comp_public_key = match atecc608a.atcab_get_pubkey(slot) {
         // public key computed from
         Ok(v) => v, // the previously generated and stored
         Err(e) => panic!("Error retrieving ECC public key: {:?}", e), // private key in slot 2.
     };
+    defmt::info!("info = {:[u8; 64]} ", comp_public_key);
 
     assert_eq!(&gen_public_key[..], &comp_public_key[..]);
 
-    loop {}
+    exit()
+}
+
+/// Terminates the application and makes `probe-run` exit with exit-code = 0
+pub fn exit() -> ! {
+    loop {
+        cortex_m::asm::bkpt();
+    }
 }
 
 #[exception]

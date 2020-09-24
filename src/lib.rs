@@ -19,15 +19,29 @@ pub mod packet;
 #[macro_use(block)]
 extern crate nb;
 extern crate embedded_hal;
+// extern crate panic_halt;
 
 use constants::{ATECC608A_EXECUTION_TIME, EXECUTION_TIME};
 // use core::convert::TryFrom;
+use core::fmt::Debug;
 use core::ops::Deref;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 use embedded_hal::blocking::i2c::{Read, Write};
 use embedded_hal::timer::CountDown;
 use heapless::{consts::*, Vec};
 use postcard::to_vec;
+
+// For logging i.e. printf style debugging
+use core::sync::atomic::{AtomicUsize, Ordering};
+
+#[defmt::timestamp]
+fn timestamp() -> u64 {
+    static COUNT: AtomicUsize = AtomicUsize::new(0);
+    // NOTE(no-CAS) `timestamps` runs with interrupts disabled
+    let n = COUNT.load(Ordering::Relaxed);
+    COUNT.store(n + 1, Ordering::Relaxed);
+    n as u64
+}
 
 // use cortex_m_semihosting::hprintln;
 
@@ -119,6 +133,7 @@ pub struct ATECC608A<I2C, DELAY, TIMER> {
 impl<I2C, DELAY, TIMER, E> ATECC608A<I2C, DELAY, TIMER>
 where
     I2C: Read<Error = E> + Write<Error = E>,
+    E: Debug,
     DELAY: DelayMs<u32> + DelayUs<u32>,
     TIMER: CountDown<Time = u32>,
 {
@@ -183,7 +198,7 @@ where
         // This call holds SDA low for a period of at least 60 us.
         match self.wake() {
             Ok(v) => v,
-            Err(_e) => panic!("i2c write error, while waking the device: "),
+            Err(_e) => defmt::info!("DEVICE WAKE SEQUENCE: tWLO COMPLETE"),
         };
         // Part 2 of 'wake sequence'
         // Upon receiving a NACK, the master releases SDA i.e. it gets pushed back up
@@ -213,7 +228,9 @@ where
 
         match self.i2c.write(self.dev_addr, &pkt[..(pkt[1] + 1) as usize]) {
             Ok(v) => v,
-            Err(_e) => panic!("i2c write error, while writing to the device: "),
+            Err(_e) => {
+                defmt::error!("I2C WRITE ERROR: failed to write command-packet to the device ")
+            }
         };
 
         let t_exec: constants::Time = (EXECUTION_TIME::ATECC608A(texec.clone()))
@@ -223,13 +240,13 @@ where
         // wait tEXEC (max) after which the device will have completed execution, and the
         // result can be read from the device using a normal read sequence.
         self.timer.start(t_exec.0 as u32 * 1000);
-        block!(self.timer.wait()).expect("Error: countdown timer");
+        block!(self.timer.wait()).expect("Error: Something went wrong with the countdown timer");
 
         // The first byte holds the length of the response.
         let mut count_byte = [0; 1];
         match self.i2c.read(self.dev_addr, &mut count_byte){
             Ok(v)   => v,
-            Err(_e)  => panic!("i2c read error, while reading the first (count) byte of the response from the device: ")
+            Err(_e)  => defmt::error!("I2C READ ERROR: failed to read the first (or count) byte of the response from the device")
         };
         // Perform a subsequent read for the remaining (response) bytes
         let mut resp = [0; (constants::ATCA_CMD_SIZE_MAX) as usize];
@@ -238,8 +255,8 @@ where
             .read(self.dev_addr, &mut resp[..(count_byte[0] - 1) as usize])
         {
             Ok(v) => v,
-            Err(_e) => panic!(
-                "i2c read error, while reading the remainder of the response from the device: "
+            Err(_e) => defmt::error!(
+                "I2C READ ERROR: failed to read the remainder of the response from the device"
             ),
         };
 
@@ -268,7 +285,7 @@ where
             {
                 match self.sleep() {
                     Ok(v) => v,
-                    Err(_e) => panic!("i2c write error, while putting the device to sleep: "),
+                    Err(_e) => defmt::error!("I2C WRITE ERROR: failed to put the device to sleep"),
                 };
 
                 status_error = constants::DECODE_ERROR::get_error(
@@ -609,7 +626,7 @@ where
             || nonce_mode == constants::NONCE_MODE_PASSTHROUGH as u16
         {
         } else {
-            panic!("Not a valid NONCE command (or mode): ");
+            defmt::error!("Not a valid NONCE command (or mode): ");
         }
 
         let mut txsize = 0;
@@ -627,7 +644,7 @@ where
         }
 
         if num_in.len() < (txsize - constants::ATCA_CMD_SIZE_MIN as u16) as usize {
-            panic!("Nonce generation failed. Invalid number of input-bytes provided : ")
+            defmt::error!("Nonce generation failed. Invalid number of input-bytes provided")
         }
 
         let mut q = packet::ATCAPacket_w_data {
@@ -679,7 +696,7 @@ where
         } else if num_in.len() == 64 {
             mode = mode | constants::NONCE_MODE_INPUT_LEN_64;
         } else {
-            panic!("Nonce generation failed. Invalid number of input-bytes provided : ")
+            defmt::error!("Nonce generation failed. Invalid number of input-bytes provided")
         }
 
         let packet = self.atcab_base_nonce(mode as u16, 0, num_in);
@@ -965,7 +982,7 @@ where
 
         let verify_mode_external = constants::VERIFY_MODE_EXTERNAL;
         if (verify_mode == verify_mode_external as u16) && (public_key == &[]) {
-            panic!("Invalid `public key` provided: ")
+            defmt::error!("Invalid `public key` provided: ")
         }
 
         let verify_mode_validate = constants::VERIFY_MODE_VALIDATE;
@@ -974,8 +991,8 @@ where
             || (verify_mode == verify_mode_invalidate as u16))
             && (other_data == &[])
         {
-            panic!("Invalid number of bytes to issue `validate or invalidate command` on chosen `public key` slot: 
-                    Note- please provide the same `19 bytes` that were used when calculating the original signature")
+            defmt::error!("Invalid number of bytes provided for `validate or invalidate command` on chosen `public key` slot: 
+                     Please provide the same `19 bytes` that were used when calculating the original signature")
         }
 
         let mut txsize = 0;
@@ -1287,7 +1304,7 @@ where
         if length == constants::ATCA_WORD_SIZE as u16 || length == constants::ATCA_BLOCK_SIZE as u16
         {
         } else {
-            panic!("Error while reading zone - only 4 or 32 byte read are allowed");
+            defmt::error!("ERROR: reading memory zone, only 4 or 32 byte reads are allowed");
         }
 
         let addr = self.atcab_get_addr(zone, slot, block, offset);
@@ -1350,7 +1367,7 @@ where
         let zone_size = self.atcab_get_zone_size(zone, slot);
 
         if (offset + length) as u16 > zone_size {
-            panic!("Length Error while reading zone bytes");
+            defmt::error!("ERROR: number of bytes to read from offset > zone size");
         }
 
         let bs = constants::ATCA_BLOCK_SIZE as u16;
@@ -1414,7 +1431,7 @@ where
     pub fn atcab_is_locked(&mut self, zone: u16) -> bool {
         if zone == constants::LOCK_ZONE_CONFIG as u16 || zone == constants::LOCK_ZONE_DATA as u16 {
         } else {
-            panic!("'isLocked' check failed. Not a valid zone ID: ");
+            defmt::error!("'isLocked' check failed. Not a valid zone ID: ");
         }
 
         let resp = match self.atcab_read_zone(
@@ -1510,11 +1527,11 @@ where
             || mem_zone == constants::ATCA_ZONE_OTP as u16
         {
         } else {
-            panic!("Error while getting address");
+            defmt::error!("ERROR: retrieving memory address");
         }
 
         if slot > 15 {
-            panic!("Error slot ID out of range")
+            defmt::error!("ERROR: slot ID out of range")
         }
 
         let mut addr = 0;
@@ -1545,11 +1562,11 @@ where
             || zone == constants::ATCA_ZONE_OTP as u16
         {
         } else {
-            panic!("Error while getting zone size");
+            defmt::error!("ERROR: retrieving zone size");
         }
 
         if slot > 15 {
-            panic!("Slot ID out of range")
+            defmt::error!("ERROR: Slot ID out of range")
         }
 
         if zone == constants::ATCA_ZONE_CONFIG as u16 {
@@ -1674,7 +1691,7 @@ where
             || (length == constants::ATCA_BLOCK_SIZE as usize)
         {
         } else {
-            panic!("Not 4 byte or a 32 byte write");
+            defmt::error!("ERROR: Not 4 byte or a 32 byte write");
         }
 
         if length == constants::ATCA_BLOCK_SIZE as usize {
@@ -1710,7 +1727,7 @@ where
 
         let length = data.len();
         if offset + length as u16 > zone_size {
-            panic!("Length Error while writing zone bytes");
+            defmt::error!("ERROR: number of bytes to write from offset > zone size");
         }
 
         let bs = constants::ATCA_BLOCK_SIZE as u16;
@@ -1811,14 +1828,14 @@ where
             config_data[84] as u16,
         );
         status_packets
-            .push(user_extra_packet.expect("Error writing to UserExtra field: "))
+            .push(user_extra_packet.expect("ERROR: failed to write to UserExtra field: "))
             .expect("too many writes: {heapless vec is full}, hint: increment len(heapless vec)");
         let user_extra_add_packet = self.atcab_updateextra(
             constants::UPDATE_MODE_USER_EXTRA as u16,
             config_data[85] as u16,
         );
         status_packets
-            .push(user_extra_add_packet.expect("Error writing to UserExtraAdd field: "))
+            .push(user_extra_add_packet.expect("ERROR: failed to write to UserExtra field: "))
             .expect("too many writes: {heapless vec is full}, hint: increment len(heapless vec)");
 
         for (idx, val) in (status_packets.deref()).iter().enumerate() {

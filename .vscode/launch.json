@@ -13,7 +13,7 @@
             "name": "atecc608a launch (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -27,7 +27,7 @@
             "name": "atecc608a attach (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -41,7 +41,7 @@
             "name": "atcab_read_config launch (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -55,7 +55,7 @@
             "name": "atcab_read_config attach (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -69,7 +69,7 @@
             "name": "atcab_write_config launch (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -83,7 +83,7 @@
             "name": "atcab_write_config attach (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -97,7 +97,7 @@
             "name": "atcab_lock_config_crc launch (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -111,7 +111,7 @@
             "name": "atcab_genkey attach (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -125,7 +125,7 @@
             "name": "atcab_genkey launch (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -139,7 +139,7 @@
             "name": "atcab_lock_config_crc attach (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -153,7 +153,7 @@
             "name": "atcab_sign_and_verify launch (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -167,7 +167,35 @@
             "name": "atcab_sign_and_verify attach (OpenOCD)",
             "device": "nRF52840",
             "configFiles": [
-                "interface/cmsis-dap.cfg", 
+                "interface/cmsis-dap.cfg",
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_info",
+            "name": "atcab_info launch (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/nrf52.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/nrf52840.svd",
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/release/examples/atcab_info",
+            "name": "atcab_info attach (OpenOCD)",
+            "device": "nRF52840",
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
             "svdFile": "${workspaceRoot}/nrf52840.svd",
@@ -195,7 +223,6 @@
             //         { "type": "console", "label": "Name", "port": 0 }
             //     ]
             // }
-
         }
     ]
 }
