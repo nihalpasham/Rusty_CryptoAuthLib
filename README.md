@@ -135,6 +135,36 @@ fn DefaultHandler(irqn: i16) {
 }
 
 ```
+### Output:
+
+```sh
+PS C:\Rusty_CryptoAuthLib> cargo run --release --example atcab_genkey
+   Compiling Rusty_CryptoAuthLib v1.0.0 (C:\Rusty_CryptoAuthLib)
+    Finished release [optimized + debuginfo] target(s) in 0.71s
+     Running `probe-run --chip nRF52840_xxAA --defmt target\thumbv7em-none-eabihf\release\examples\atcab_genkey`
+  (HOST) INFO  flashing program
+  (HOST) INFO  success!
+────────────────────────────────────────────────────────────────────────────────
+0.000000 INFO  DEVICE WAKE SEQUENCE: tWLO COMPLETE
+└─ Rusty_CryptoAuthLib::{{impl}}::send_packet @ src\lib.rs:201
+0.000001 INFO  gen_public_key = [6, 172, 45, 12, 15, 225, 99, 241, 134, 200, 188, 148, 205, 58, 176, 5, 92, 241, 196, 60, 128, 226, 212, 164, 109, 85, 245, 42, 115, 97, 23, 32, 188, 237, 99, 46, 48, 122, 93, 103, 158, 33, 149, 122, 234, 19, 208, 19, 88, 224, 224, 61, 195, 192, 173, 0, 214, 83, 30, 37, 219, 172, 39, 149]
+└─ atcab_genkey::__cortex_m_rt_main @ examples\atcab_genkey.rs:44
+0.000002 INFO  comp_public_key = [6, 172, 45, 12, 15, 225, 99, 241, 134, 200, 188, 148, 205, 58, 176, 5, 92, 241, 196, 60, 128, 226, 212, 164, 109, 85, 245, 42, 115, 97, 23, 32, 188, 237, 99, 46, 48, 122, 93, 103, 158, 33, 149, 122, 234, 19, 208, 19, 88, 224, 224, 61, 195, 192, 173, 0, 214, 83, 30, 37, 219, 172, 39, 149]
+└─ atcab_genkey::__cortex_m_rt_main @ examples\atcab_genkey.rs:51
+stack backtrace:
+   0: __bkpt
+   1: atcab_genkey::exit
+        at examples/atcab_genkey.rs:60
+   2: atcab_genkey::__cortex_m_rt_main
+        at examples/atcab_genkey.rs:55
+   3: main
+        at examples/atcab_genkey.rs:20
+   4: ResetTrampoline
+        at C:\Users\Nil\.cargo\registry\src\github.com-1ecc6299db9ec823\cortex-m-rt-0.6.13/C:\Users\Nil\.cargo\registry\src\github.com-1ecc6299db9ec823\cortex-m-rt-0.6.13\src/lib.rs:547
+   5: Reset
+        at C:\Users\Nil\.cargo\registry\src\github.com-1ecc6299db9ec823\cortex-m-rt-0.6.13/C:\Users\Nil\.cargo\registry\src\github.com-1ecc6299db9ec823\cortex-m-rt-0.6.13\src/lib.rs:550
+
+```
 Please see the examples folder for more.
 
 ## Device personalisation (i.e. configuration) steps:
