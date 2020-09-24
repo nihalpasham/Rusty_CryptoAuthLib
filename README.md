@@ -103,14 +103,14 @@ fn main() -> ! {
         Ok(v) => v, // generating and storing a new (random) ECC private key
         Err(e) => panic!("Error generating ECC private key: {:?}", e), // in slot 2.
     };
-    defmt::info!("info = {:[u8; 64]} ", gen_public_key);
+    defmt::info!("gen_public_key = {:[u8; 64]} ", gen_public_key);
 
     let comp_public_key = match atecc608a.atcab_get_pubkey(slot) {
         // public key computed from
         Ok(v) => v, // the previously generated and stored
         Err(e) => panic!("Error retrieving ECC public key: {:?}", e), // private key in slot 2.
     };
-    defmt::info!("info = {:[u8; 64]} ", comp_public_key);
+    defmt::info!("comp_public_key = {:[u8; 64]} ", comp_public_key);
 
     assert_eq!(&gen_public_key[..], &comp_public_key[..]);
 
