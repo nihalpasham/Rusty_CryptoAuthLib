@@ -240,7 +240,8 @@ where
         // wait tEXEC (max) after which the device will have completed execution, and the
         // result can be read from the device using a normal read sequence.
         self.timer.start(t_exec.0 as u32 * 1000);
-        block!(self.timer.wait()).expect("Error: Something went wrong with the countdown timer");
+        block!(self.timer.wait())
+            .expect("ERROR: Something went wrong while waiting on the countdown timer to expire");
 
         // The first byte holds the length of the response.
         let mut count_byte = [0; 1];
@@ -874,7 +875,7 @@ where
         }
         // Load digest into device's Message Digest Buffer. nonce_target determines the buffer location for the location.
         self.atcab_nonce_load(nonce_target as u16, digest)
-            .expect("Error loading fixed nonce: ");
+            .expect("ERROR: loading fixed nonce: ");
 
         let packet =
             self.atcab_sign_base((constants::SIGN_MODE_EXTERNAL | sign_source) as u16, key_id);
@@ -1083,7 +1084,7 @@ where
         }
         // Load digest into device's Message Digest Buffer. `nonce_target` setting determines the buffer location.
         self.atcab_nonce_load(nonce_target as u16, message)
-            .expect("Error loading fixed nonce: ");
+            .expect("ERROR: loading fixed nonce: ");
 
         let packet = self.atcab_verify(
             (constants::VERIFY_MODE_EXTERNAL | verify_source) as u16,
@@ -1131,7 +1132,7 @@ where
         }
         // Load digest into device's Message Digest Buffer. `nonce_target` setting determines the buffer location.
         self.atcab_nonce_load(nonce_target as u16, message)
-            .expect("Error loading fixed nonce: ");
+            .expect("ERROR: loading fixed nonce: ");
 
         let packet = self.atcab_verify(
             (constants::VERIFY_MODE_STORED | verify_source) as u16,
@@ -1442,7 +1443,7 @@ where
             constants::ATCA_WORD_SIZE as u16,
         ) {
             Ok(v) => v,
-            Err(e) => panic!("Error reading lock bytes [84] or [85]: {:?}", e),
+            Err(e) => panic!("ERROR: reading lock bytes [84] or [85]: {:?}", e),
         };
         if zone == constants::LOCK_ZONE_CONFIG as u16 && resp[3] != 0x55 {
             return true;
