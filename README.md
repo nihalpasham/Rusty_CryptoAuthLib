@@ -313,7 +313,12 @@ Writing the ATECC-TFLXTLS configuration to the device will yield a personalised 
 For questions, issues, feature requests, and other changes, please file an issue in the github project.
 
 ## License:
-Licensed under either of
+Rusty_CryptoAuthLib was ported from the C implementaion of `Microchip CryptoAuthentication Library CryptoAuthLib  v3.2.3`
+
+*  (c) 2015-2020 Microchip Technology Inc. and its subsidiaries.
+*  License terms (https://github.com/MicrochipTech/cryptoauthlib/blob/main/license.txt)
+
+Rusty_CryptoAuthLib is licensed under Microchip CryptoAuthentication Library CryptoAuthLib v3.2.3 license terms and either of
 
 * Apache License, Version 2.0 (LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0)
 * MIT license (LICENSE-MIT or http://opensource.org/licenses/MIT)
