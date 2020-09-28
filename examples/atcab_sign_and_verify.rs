@@ -41,24 +41,24 @@ fn main() -> ! {
     // SIGN and VERIFY COMMAND EXAMPLE
     // Note: TFLXTLSConfig has slot 3 configured to hold an ECC private key.
     let slot = 0x03;
+    // public key retreived upon generating and storing a new (random) ECC private key in slot 3.
     let gen_public_key = match atecc608a.atcab_genkey(slot) {
-        // public key retreived upon
-        Ok(v) => v, // generating and storing a new (random) ECC private key
-        Err(e) => panic!("Error generating ECC private key: {:?}", e), // in slot 2.
+        Ok(v) => v,
+        Err(e) => panic!("Error generating ECC private key: {:?}", e),
     };
+    // public key computed from the previously generated and stored private key in slot 3.
     let comp_public_key = match atecc608a.atcab_get_pubkey(slot) {
-        // public key computed from
-        Ok(v) => v, // the previously generated and stored
-        Err(e) => panic!("Error retrieving ECC public key: {:?}", e), // private key in slot 2.
+        Ok(v) => v,
+        Err(e) => panic!("Error retrieving ECC public key: {:?}", e),
     };
     assert_eq!(&gen_public_key[..], &comp_public_key[..]); // check to see if both public keys are equal
 
-    // Compute a digest of the message and have the ATECC608a sign it
     let digest = atecc608a
-        .atcab_sha(&test_message[..].as_bytes())
+        .atcab_sha(&test_message[..].as_bytes()) // Compute a digest of the message
         .expect("Error computing SHA256 digest");
-    assert_eq!(&digest[..32], sha256_digest_test_message); // check to see if the computed sha256 matches the one you have.
+    assert_eq!(&digest[..32], sha256_digest_test_message); // check to see if the computed sha256 digest matches the one you have.
     let signature = match atecc608a.atcab_sign(slot, &digest[..32]) {
+        // and sign it
         Ok(v) => v,
         Err(e) => panic!("Error generating ECC signature: {:?}", e),
     };
@@ -68,6 +68,7 @@ fn main() -> ! {
     // verified[0] == 0x00, means the signature was successfully verified by the device.
     let verified =
         match atecc608a.atcab_verify_extern(&digest[..32], &signature[..], &comp_public_key[..]) {
+            // pass digest, signature, pub key
             Ok(v) => v,
             Err(e) => panic!("Error verifying ECC signature: {:?}", e),
         };
