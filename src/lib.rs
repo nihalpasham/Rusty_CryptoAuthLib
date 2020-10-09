@@ -14,6 +14,7 @@
 #![no_std]
 
 pub mod constants;
+pub mod macros;
 pub mod packet;
 
 #[macro_use(block)]
@@ -22,7 +23,13 @@ extern crate embedded_hal;
 // extern crate panic_halt;
 
 use constants::{ATECC608A_EXECUTION_TIME, EXECUTION_TIME};
-// use core::convert::TryFrom;
+use macros::ConvertTo; // macro_rules macro that implements the 'ConvertTo trait'
+
+// proc-macro that implements the 'ConvertTo trait'
+// proc-macro syntax is a little more intuitive but you can use either of them (i.e. macro_rules impl or proc-macro impl)
+// use convertto_proc_macro::ConvertTo;
+// ConvertTo!([u8; 3], [u8; 4], [u8; 32], [u8; 64]);
+
 use core::fmt::Debug;
 use core::ops::Deref;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
@@ -37,7 +44,7 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 #[defmt::timestamp]
 fn timestamp() -> u64 {
     static COUNT: AtomicUsize = AtomicUsize::new(0);
-    // NOTE(no-CAS) `timestamps` runs with interrupts disabled
+    // NOTE(no-CAS) `timestamps` run with interrupts disabled
     let n = COUNT.load(Ordering::Relaxed);
     COUNT.store(n + 1, Ordering::Relaxed);
     n as u64
@@ -56,64 +63,6 @@ const DEVICE_TYPE: Variant = Variant::ATECC608A;
 enum Variant {
     ATECC608A,
     ATECC508A,
-}
-
-/// Helper trait to convert ATCA_CMD_SIZE_MAX (151-byte) array to
-/// -   a 3-byte (ATCA_RSP_SIZE_MIN-1) array
-/// -   or a 64-byte array
-///
-/// This is just to optimize runtime space requirements. We use a ATCA_CMD_SIZE_MAX (151-byte) array
-/// to store all responses from the ATECC device as Rust does not yet support code that is generic over
-/// the size of an array type i.e. [Foo; 3] and [Bar; 3] are instances of same generic type [T; 3],
-/// but [Foo; 3] and [Foo; 5]  are entirely different types.
-pub trait ConvertTo {
-    /// Trait to convert any array (of u8s) of size > 3 to a 3 byte array.
-    fn convert_to_3(&self) -> [u8; 3];
-    /// Trait to convert any array (of u8s) of size > 4 to a 4 byte array.
-    fn convert_to_4(&self) -> [u8; 4];
-    /// Trait to convert any array (of u8s) of size > 32 to a 32 byte array.
-    fn convert_to_32(&self) -> [u8; 32];
-    /// Trait to convert any array (of u8s) of size > 64 to a 64 byte array.
-    fn convert_to_64(&self) -> [u8; 64];
-}
-
-impl ConvertTo for [u8; 151] {
-    /// This method takes a reference to `self` (an array) and returns the first 3-bytes.
-    /// Responses that do not contain data are 4 bytes in length. The method `send_packet` returns
-    /// a [u8;151] which does not include the count (or first) byte. So, we only need to pick the first 3 bytes.  
-    fn convert_to_3(&self) -> [u8; 3] {
-        let mut rsp_bytes = [0; 3];
-        for (idx, val) in self[..3].iter().enumerate() {
-            rsp_bytes[idx] = *val
-        }
-        rsp_bytes
-    }
-
-    /// This method takes a reference to `self` (an array) and returns the first 4-bytes.
-    fn convert_to_4(&self) -> [u8; 4] {
-        let mut rsp_bytes = [0; 4];
-        for (idx, val) in self[..4].iter().enumerate() {
-            rsp_bytes[idx] = *val
-        }
-        rsp_bytes
-    }
-    /// This method takes a reference to `self` (an array) and returns the first 64-bytes.
-    fn convert_to_64(&self) -> [u8; 64] {
-        let mut rsp_bytes = [0; 64];
-        for (idx, val) in self[..64].iter().enumerate() {
-            rsp_bytes[idx] = *val
-        }
-        rsp_bytes
-    }
-
-    /// This method takes a reference to `self` (an array) and returns the first 32-bytes.
-    fn convert_to_32(&self) -> [u8; 32] {
-        let mut rsp_bytes = [0; 32];
-        for (idx, val) in self[..32].iter().enumerate() {
-            rsp_bytes[idx] = *val
-        }
-        rsp_bytes
-    }
 }
 
 /// ATECC680A driver
@@ -185,7 +134,7 @@ where
     /// -  Either an array of size [u8;151]
     ///     1.   If byte[0] is 0x00, it indicates the successful execution of a command
     ///     2.   If byte[0] is !=0x00, it includes the response associated with respective command
-    /// -   If an error is encountered, it returns a struct containing the status error.
+    /// -   Or an error. The error returned is a struct containing the status error.
     pub fn send_packet(
         &mut self,
         packet: &[u8],
@@ -205,6 +154,7 @@ where
         // tWHI - ADD a delay of at least 1500 us to ensure SDA is held high.
         // This sequence wakes the device ans is now ready for data exchange.
         self.delay.delay_us(WAKE_DELAY);
+        // defmt::info!("DEVICE WAKE SEQUENCE: tWHI COMPLETE");
         // After waking the device, we can send our actual data packet
         // if packet[(constants::ATCA_COUNT_IDX + 1) as usize] == constants::ATCA_CMD_SIZE_MIN {
         //     self.i2c.write(self.dev_addr, &packet[..packet.len()]);

@@ -1,0 +1,17 @@
+[package]
+authors = ["Nihal Pasham <nihal.pasham@gmail.com>"]
+edition = "2018"
+name = "convertto-proc-macro"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.7"
+
+[dependencies.syn]
+features = ["full", "extra-traits"]
+version = "1.0.42"

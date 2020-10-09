@@ -47,7 +47,7 @@ making it easier to bind to an existing C code-base.
 
 ## Notes:
 1. This driver is a product of my interest in 'learning the language'. So, its not perfect (or production quality) and there may be better ways to do things. Feedback, comments, suggestions are welcome. 
-2. Uses 'Postcard' to serizalize or de-serialize a Rust struct to 'heapless Vec' (i.e. stack-based vec for no_std environments)
+2. Uses 'Postcard' to serizalize or de-serialize a Rust struct to a 'heapless Vec' (i.e. stack-based vec for no_std environments)
 2. This code has been tested on an nrf board using 'nrf-hal-common'. In theory, it should work with any HAL that implements 'embedded-hal' traits.
 3. During development, I discovered a bug in the i2c/TWIM implementation for nrf52840 (in nrf52840_hal). 
 4. A PR was raised and the fix was merged-in but just make sure you pull in the fix or edit cargo.toml accordingly to get this driver to work. https://github.com/nrf-rs/nrf-hal/pull/166
@@ -214,6 +214,7 @@ Writing the ATECC-TFLXTLS configuration to the device will yield a personalised 
 
 ## Update:
 -   Switched to `probe-run and defmt` for logging and printf style debugging. 
+-   Switched to using macros for the `ConvertTo trait`. ConvertTo has 2 separate impls i.e. macro_rules and proc-macro impls are both available. Any one of them can be used.
 
 ## Currently supported commands are:
 - INFO
